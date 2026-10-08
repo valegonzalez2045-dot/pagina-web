@@ -26,6 +26,21 @@ export interface EnlaceContacto {
   href: string
 }
 
+export interface ItemCarrito {
+  /** Id único del artículo (sección + foto) */
+  id: string
+  /** Nombre de la sección/producto, ej "Chocomellows" */
+  seccion: string
+  /** Nombre legible del artículo, ej "Chocomellows · diseño 3" */
+  nombre: string
+  src: string
+  /** Precio unitario en pesos; null = a cotizar */
+  precio: number | null
+  /** Texto a mostrar del precio, ej "$4.500" o "Precio por confirmar" */
+  precioTexto: string
+  cantidad: number
+}
+
 export interface FotoGaleria {
   id: string
   etiqueta: string

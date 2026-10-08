@@ -13,20 +13,34 @@ import { Contacto } from './components/sections/Contacto'
 import { ModalProducto } from './components/ui/ModalProducto'
 import { AdminPanel } from './admin/AdminPanel'
 
-import type { Producto } from './types'
+import type { ItemCarrito, Producto } from './types'
 import { enlacesNavegacion } from './data/navegacion'
 import { productos } from './data/productos'
 import { combos } from './data/combos'
 import { beneficiosMayoreo } from './data/mayoreo'
 import { fotosGaleria } from './data/galeria'
 import { enlacesContacto } from './data/contacto'
+import { Carrito } from './components/carrito/Carrito'
 
 const NOMBRE_MARCA = 'PETITE PRINCESSE'
 const ESLOGAN = 'Chocolates y galletas artesanales'
+const CLAVE_CARRITO = 'petite-carrito'
+
+function cargarCarrito(): ItemCarrito[] {
+  try {
+    const guardado = window.localStorage.getItem(CLAVE_CARRITO)
+    if (!guardado) return []
+    const datos: unknown = JSON.parse(guardado)
+    return Array.isArray(datos) ? (datos as ItemCarrito[]) : []
+  } catch {
+    return []
+  }
+}
 
 // App solo compone: decide qué datos recibe cada componente.
 function App() {
   const [productoAbierto, setProductoAbierto] = useState<Producto | null>(null)
+  const [carrito, setCarrito] = useState<ItemCarrito[]>(cargarCarrito)
   const [enAdmin, setEnAdmin] = useState<boolean>(() =>
     window.location.hash.startsWith('#admin'),
   )
@@ -36,6 +50,40 @@ function App() {
     window.addEventListener('hashchange', alCambiar)
     return () => window.removeEventListener('hashchange', alCambiar)
   }, [])
+
+  // El carrito sobrevive al recargar la página
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CLAVE_CARRITO, JSON.stringify(carrito))
+    } catch {
+      // sin almacenamiento disponible: el carrito solo vive en memoria
+    }
+  }, [carrito])
+
+  const agregarAlCarrito = (item: ItemCarrito) => {
+    setCarrito((actual) => {
+      const existente = actual.find((i) => i.id === item.id)
+      if (existente) {
+        return actual.map((i) =>
+          i.id === item.id ? { ...i, cantidad: i.cantidad + 1 } : i,
+        )
+      }
+      return [...actual, item]
+    })
+  }
+
+  const cambiarCantidad = (id: string, cantidad: number) => {
+    setCarrito((actual) =>
+      actual
+        .map((i) => (i.id === id ? { ...i, cantidad: Math.max(0, cantidad) } : i))
+        .filter((i) => i.cantidad > 0),
+    )
+  }
+
+  const quitarDelCarrito = (id: string) =>
+    setCarrito((actual) => actual.filter((i) => i.id !== id))
+
+  const vaciarCarrito = () => setCarrito([])
 
   // Panel de administración: entra con tuweb.com/#admin
   if (enAdmin) return <AdminPanel />
@@ -93,8 +141,16 @@ function App() {
         <ModalProducto
           producto={productoAbierto}
           onCerrar={() => setProductoAbierto(null)}
+          onAgregar={agregarAlCarrito}
         />
       )}
+
+      <Carrito
+        items={carrito}
+        onCambiarCantidad={cambiarCantidad}
+        onQuitar={quitarDelCarrito}
+        onVaciar={vaciarCarrito}
+      />
     </div>
   )
 }

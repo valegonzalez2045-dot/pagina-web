@@ -20,9 +20,15 @@ export function Combos({ combos, onSeleccionarCombo }: CombosProps) {
           <Tarjeta key={combo.id} className="especial">
             <h3>{combo.titulo}</h3>
             <p>{combo.descripcion}</p>
-            <button onClick={() => onSeleccionarCombo?.(combo)}>
-              {combo.textoBoton}
-            </button>
+            {combo.href ? (
+              <a href={combo.href} target="_blank" rel="noreferrer">
+                {combo.textoBoton}
+              </a>
+            ) : (
+              <button onClick={() => onSeleccionarCombo?.(combo)}>
+                {combo.textoBoton}
+              </button>
+            )}
           </Tarjeta>
         ))}
       </div>

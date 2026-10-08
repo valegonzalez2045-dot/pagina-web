@@ -16,6 +16,8 @@ export interface Combo {
   titulo: string
   descripcion: string
   textoBoton: string
+  /** Si existe, el botón enlaza (p. ej. a WhatsApp) en lugar de solo disparar el callback */
+  href?: string
 }
 
 export interface EnlaceContacto {

@@ -206,7 +206,8 @@ h3 {
   padding: 40px;
 }
 
-.especial button {
+.especial button,
+.especial a {
   margin-top: 20px;
   border: none;
   padding: 11px 22px;
@@ -215,9 +216,13 @@ h3 {
   color: white;
   cursor: pointer;
   transition: 0.3s;
+  text-decoration: none;
+  display: inline-block;
+  font-size: inherit;
 }
 
-.especial button:hover {
+.especial button:hover,
+.especial a:hover {
   background: var(--color-boton-hover);
   transform: translateY(-2px);
 }

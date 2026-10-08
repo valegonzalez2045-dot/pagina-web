@@ -13,7 +13,11 @@ export const enlacesContacto: EnlaceContacto[] = [
     etiqueta: '📱 WhatsApp',
     href: whatsappUrl('¡Hola Petite Princesse 💕! Quiero hacer un pedido.'),
   },
-  { id: 'instagram', etiqueta: '📸 Instagram', href: '#' },
+  {
+    id: 'instagram',
+    etiqueta: '📸 Instagram',
+    href: 'https://www.instagram.com/petite_princesse_reposteria',
+  },
   {
     id: 'ubicacion',
     etiqueta: '📍 Manizales, Colombia',

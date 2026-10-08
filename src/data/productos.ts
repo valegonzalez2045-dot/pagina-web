@@ -4,7 +4,8 @@ export const productos: Producto[] = [
   {
     id: 'chocomellows',
     nombre: 'Chocomellows',
-    descripcion: 'Masmelos de vainilla cubiertos con delicioso chocolate.',
+    descripcion:
+      'Masmelos (de sandía, vainilla o nucita) cubiertos de delicioso chocolate.',
     fotos: [
       '/productos/chocomellowit.webp',
       '/productos/chocomellowvaca.webp',
@@ -28,19 +29,21 @@ export const productos: Producto[] = [
   {
     id: 'chocoreo',
     nombre: 'Chocoreo',
-    descripcion: 'Una combinación irresistible de chocolate y Oreo.',
+    descripcion:
+      'Una combinación irresistible de chocolate y galleta. Iguales a las chocogalletas, pero estos no traen palito.',
     fotos: ['/productos/chocoreovaca.webp'],
   },
   {
     id: 'cookie-fusion',
     nombre: 'Cookie Fusion',
-    descripcion: 'Galleta de chispas con chocolate, perfecta para disfrutar.',
+    descripcion:
+      'Galleta de chispas de chocolate con una combinación de chocolate semiamargo y leche, perfecta para disfrutar.',
     fotos: ['/productos/cookiefusion.webp'],
   },
   {
     id: 'artecookies',
     nombre: 'Artecookies',
-    descripcion: 'Galletas decoradas para cada ocasión.',
+    descripcion: 'Galletas decoradas con glaseado para cada ocasión.',
     fotos: [
       '/productos/artecookiechimuelo.webp',
       '/productos/artecookiemonsterhigh.webp',
@@ -51,13 +54,14 @@ export const productos: Producto[] = [
   {
     id: 'chocodelicias',
     nombre: 'Chocodelicias',
-    descripcion: 'Creaciones elaboradas únicamente con chocolate.',
+    descripcion:
+      'Creaciones elaboradas únicamente con chocolate, vienen con y sin palito.',
     fotos: ['/productos/chocodeliciadalmata.webp'],
   },
   {
     id: 'sweetcakes',
     nombre: 'Sweetcakes',
-    descripcion: 'Pasteles dulces para momentos especiales.',
+    descripcion: 'Pasteles elaborados con amor para momentos especiales.',
     fotos: [
       '/productos/sweetcakecapibara.webp',
       '/productos/sweetcakejuanpa.webp',
@@ -73,19 +77,20 @@ export const productos: Producto[] = [
   {
     id: 'cakepops',
     nombre: 'Cakepops',
-    descripcion: 'Pequeñas creaciones dulces perfectas para regalar.',
+    descripcion: 'Pequeña encapsulación de tu pastel favorito con chocolate.',
     fotos: [],
   },
   {
     id: 'cookies',
     nombre: 'Cookies',
-    descripcion: 'Cookies recién horneadas: crujientes por fuera y tiernas por dentro.',
+    descripcion:
+      'Cookies recién horneadas: crujientes por fuera y tiernas por dentro.',
     fotos: ['/catalogo/cookies/cookies-40-1.webp', '/catalogo/cookies/cookies-40-2.webp'],
   },
   {
     id: 'fresas-con-crema',
     nombre: 'Fresas con crema',
-    descripcion: 'Fresas frescas bañadas en crema dulce y chocolate.',
+    descripcion: 'Deliciosas fresitas bañadas con nuestra crema de autor.',
     fotos: [
       '/catalogo/fresas-con-crema/fresas-con-crema-41-1.webp',
       '/catalogo/fresas-con-crema/fresas-con-crema-41-2.webp',

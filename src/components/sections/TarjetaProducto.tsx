@@ -1,6 +1,7 @@
 import { Tarjeta } from '../ui/Tarjeta'
 import { FotoPlaceholder } from '../ui/FotoPlaceholder'
 import type { Producto } from '../../types'
+import { catalogo } from '../../data/catalogo'
 
 interface TarjetaProductoProps {
   producto: Producto
@@ -11,12 +12,16 @@ export function TarjetaProducto({
   producto,
   onVerProducto,
 }: TarjetaProductoProps) {
+  // La foto de la tarjeta es la del producto; si no hay, usa la primera del catálogo.
+  const primeraFoto =
+    producto.fotos[0] ?? catalogo[producto.id]?.[0]?.src
+
   return (
     <Tarjeta>
-      {producto.fotos.length > 0 ? (
+      {primeraFoto ? (
         <img
           className="foto-producto"
-          src={producto.fotos[0]}
+          src={primeraFoto}
           alt={producto.nombre}
           loading="lazy"
         />

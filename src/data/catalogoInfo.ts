@@ -7,7 +7,9 @@ export interface ListaOpciones {
 }
 
 export interface InfoCatalogo {
-  /** Texto que se muestra arriba de las fotos en el modal. */
+  /** Textos que se muestran arriba de las fotos en el modal (pueden ser varios). */
+  notas?: string[]
+  /** Texto único (compatibilidad). Se muestra igual que notas. */
   nota?: string
   /** Si es false, no se muestra precio debajo de cada foto. Por defecto: true. */
   mostrarPrecios?: boolean
@@ -17,11 +19,37 @@ export interface InfoCatalogo {
 
 export const catalogoInfo: Record<string, InfoCatalogo> = {
   "artecookies": {
-    "nota": "Tenemos 3 tamaños 🍪 · 6 cm $4.500 · 8 cm $5.200 · 10 cm $6.000",
+    "notas": [
+      "Tenemos 3 tamaños 🍪 · 6 cm $4.500 · 8 cm $5.200 · 10 cm $6.000",
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ],
     "mostrarPrecios": false
   },
+  "cakepops": {
+    "notas": [
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ]
+  },
+  "chocomellows": {
+    "notas": [
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ]
+  },
+  "chocoreo": {
+    "notas": [
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ]
+  },
+  "cupcakes": {
+    "notas": [
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ]
+  },
   "sweetcakes": {
-    "nota": "Cada pastel se cotiza según el diseño y el tamaño 🎂",
+    "notas": [
+      "Cada pastel se cotiza según el diseño, sabor y tamaño 🎂. Contáctanos por WhatsApp para cotizarte de manera individual 💬",
+      "Estos son algunos de los diseños que hemos hecho. ¿Tienes uno diferente? Compártenos las imágenes y lo haremos realidad 💕"
+    ],
     "mostrarPrecios": false,
     "listas": [
       {

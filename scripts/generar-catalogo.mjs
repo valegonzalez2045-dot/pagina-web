@@ -139,7 +139,9 @@ export interface ListaOpciones {
 }
 
 export interface InfoCatalogo {
-  /** Texto que se muestra arriba de las fotos en el modal. */
+  /** Textos que se muestran arriba de las fotos en el modal (pueden ser varios). */
+  notas?: string[]
+  /** Texto único (compatibilidad). Se muestra igual que notas. */
   nota?: string
   /** Si es false, no se muestra precio debajo de cada foto. Por defecto: true. */
   mostrarPrecios?: boolean

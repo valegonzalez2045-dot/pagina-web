@@ -10,6 +10,7 @@ interface ListaEditor {
 
 interface InfoProducto {
   nota?: string
+  notas?: string[]
   mostrarPrecios?: boolean
   listas?: ListaEditor[]
 }
@@ -68,6 +69,21 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
     setInfo((prev) => ({ ...prev, [clave]: { ...prev[clave], ...parcial } }))
   }
 
+  /** Edita los mensajes (uno por línea) y migra el campo viejo "nota". */
+  const cambiarNotas = (clave: string, valor: string) => {
+    const notas = valor
+      .split('\n')
+      .map((x) => x.trim())
+      .filter(Boolean)
+    setInfo((prev) => {
+      const producto = prev[clave] ?? {}
+      const actualizado: InfoProducto = { ...producto, notas }
+      delete actualizado.nota
+      if (notas.length === 0) delete actualizado.notas
+      return { ...prev, [clave]: actualizado }
+    })
+  }
+
   const cambiarLista = (clave: string, indice: number, parcial: Partial<ListaEditor>) => {
     setInfo((prev) => {
       const producto = prev[clave] ?? {}
@@ -119,8 +135,8 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        Aquí editas el texto que se muestra al abrir cada producto (la nota de arriba, si
-        muestra precio por foto, y las listas de sabores o rellenos).
+        Aquí editas el texto que se muestra al abrir cada producto (los mensajes de
+        arriba, si muestra precio por foto, y las listas de sabores o rellenos).
       </p>
 
       {Object.entries(info).map(([clave, producto]) => (
@@ -138,13 +154,16 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
           </div>
 
           <label className="admin-campo">
-            Nota (texto de arriba en la ventana del producto)
+            Mensajes (uno por línea, aparecen arriba en la ventana del producto)
             <textarea
               className="admin-entrada"
-              rows={2}
-              value={producto.nota ?? ''}
-              placeholder="Ej: Cada pastel se cotiza según el diseño y el tamaño 🎂"
-              onChange={(e) => actualizar(clave, { nota: e.target.value })}
+              rows={3}
+              value={
+                (producto.notas ?? (producto.nota ? [producto.nota] : [])).join('\n')
+              }
+              placeholder={`Ej: Cada pastel se cotiza según el diseño, sabor y tamaño 🎂
+Ej: Estos son algunos de los diseños que hemos hecho 💕`}
+              onChange={(e) => cambiarNotas(clave, e.target.value)}
             />
           </label>
 

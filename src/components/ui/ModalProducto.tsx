@@ -4,6 +4,7 @@ import { catalogo } from '../../data/catalogo'
 import type { FotoCatalogo } from '../../data/catalogo'
 import { catalogoInfo } from '../../data/catalogoInfo'
 import { precioANumero } from '../../utils/precio'
+import { whatsappUrl } from '../../data/contacto'
 import { Lightbox } from './Lightbox'
 
 interface ModalProductoProps {
@@ -20,6 +21,11 @@ export function ModalProducto({
   const fotos = catalogo[producto.id] ?? []
   const info = catalogoInfo[producto.id]
   const mostrarPrecios = info?.mostrarPrecios !== false
+  // Si ninguna foto tiene precio, la sección se cotiza por WhatsApp (no lleva carrito).
+  const esCotizacion = fotos.length > 0 && !fotos.some((foto) => foto.precio)
+  const notas =
+    info?.notas ??
+    (info?.nota ? [info.nota] : ([] as string[]))
   const [ampliada, setAmpliada] = useState<number | null>(null)
   const [agregado, setAgregado] = useState<string | null>(null)
   const temporizador = useRef<number | null>(null)
@@ -94,7 +100,15 @@ export function ModalProducto({
           </header>
 
           <div className="modal-producto-cuerpo">
-            {info?.nota && <p className="catalogo-nota">{info.nota}</p>}
+            {notas.length > 0 && (
+              <div className="catalogo-notas">
+                {notas.map((nota) => (
+                  <p className="catalogo-nota" key={nota}>
+                    {nota}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {info?.listas && info.listas.length > 0 && (
               <div className="catalogo-listas">
@@ -112,39 +126,57 @@ export function ModalProducto({
             )}
 
             {fotos.length > 0 ? (
-              <ul className="catalogo-lista">
-                {fotos.map((foto, i) => (
-                  <li key={foto.src}>
-                    <div className="catalogo-tarjeta">
-                      <button
-                        type="button"
-                        className="catalogo-foto"
-                        onClick={() => setAmpliada(i)}
-                        aria-label={`Ampliar diseño ${i + 1} de ${producto.nombre}`}
-                      >
-                        <img
-                          src={foto.src}
-                          alt={`${producto.nombre} ${i + 1}`}
-                          loading="lazy"
-                        />
-                        {mostrarPrecios && (
-                          <span className="catalogo-precio">
-                            {foto.precio || 'Precio por confirmar'}
-                          </span>
+              <>
+                <ul className="catalogo-lista">
+                  {fotos.map((foto, i) => (
+                    <li key={foto.src}>
+                      <div className="catalogo-tarjeta">
+                        <button
+                          type="button"
+                          className="catalogo-foto"
+                          onClick={() => setAmpliada(i)}
+                          aria-label={`Ampliar diseño ${i + 1} de ${producto.nombre}`}
+                        >
+                          <img
+                            src={foto.src}
+                            alt={`${producto.nombre} ${i + 1}`}
+                            loading="lazy"
+                          />
+                          {mostrarPrecios && (
+                            <span className="catalogo-precio">
+                              {foto.precio || 'Precio por confirmar'}
+                            </span>
+                          )}
+                        </button>
+                        {!esCotizacion && (
+                          <button
+                            type="button"
+                            className="catalogo-agregar"
+                            onClick={() => agregarAlCarrito(foto, i)}
+                            aria-label={`Agregar ${producto.nombre} diseño ${i + 1} al carrito`}
+                          >
+                            {agregado === foto.src ? '✓ Agregado' : 'Agregar 🛒'}
+                          </button>
                         )}
-                      </button>
-                      <button
-                        type="button"
-                        className="catalogo-agregar"
-                        onClick={() => agregarAlCarrito(foto, i)}
-                        aria-label={`Agregar ${producto.nombre} diseño ${i + 1} al carrito`}
-                      >
-                        {agregado === foto.src ? '✓ Agregado' : 'Agregar 🛒'}
-                      </button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+                {esCotizacion && (
+                  <div className="catalogo-cotizar">
+                    <a
+                      href={whatsappUrl(
+                        `¡Hola Petite Princesse 💕! Quiero cotizar ${producto.nombre}.`,
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="catalogo-cotizar-boton"
+                    >
+                      Cotizar por WhatsApp 💬
+                    </a>
+                  </div>
+                )}
+              </>
             ) : (
               <p className="catalogo-vacio">
                 Aún no tengo fotos de esta sección. Vuelve pronto 💕

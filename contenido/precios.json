@@ -1,0 +1,40 @@
+{
+  "porArchivo": {
+    "fresas-con-crema/fresas-con-crema-41-1": "$5.000 · 5 onz",
+    "fresas-con-crema/fresas-con-crema-41-2": "$8.000 · 10 onz",
+    "cupcakes/cupcakes-42-1": "Sencillo · $7.000",
+    "cupcakes/cupcakes-42-2": "Topper · $7.500",
+    "cupcakes/cupcakes-42-3": "3D · $9.000"
+  },
+  "porPagina": {
+    "3": "$3.000",
+    "4": "$4.000",
+    "5": "$4.000",
+    "6": "$4.000",
+    "7": "$4.000",
+    "8": "$4.000",
+    "9": "$4.500",
+    "10": "$4.500",
+    "11": "$4.500",
+    "12": "$5.000",
+    "13": "$5.000",
+    "14": "$5.000",
+    "15": "$6.000",
+    "16": "$6.000",
+    "17": "$6.000",
+    "18": "$6.000",
+    "19": "$6.000",
+    "20": "$7.000",
+    "21": "$7.000",
+    "22": "$8.700",
+    "23": "$11.600"
+  },
+  "porSeccion": {
+    "chocomellows-sencillos": "$3.000",
+    "chocomellows-dobles": "$4.500",
+    "cakepops": "$10.000",
+    "cookies": "$5.000 · 50 gr",
+    "cookie-fusion": "$10.000"
+  },
+  "porProducto": {}
+}

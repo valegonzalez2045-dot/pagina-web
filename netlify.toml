@@ -1,0 +1,9 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# Recarga de la app tipo SPA (la web usa enlaces tipo #contacto, esto es un respaldo)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

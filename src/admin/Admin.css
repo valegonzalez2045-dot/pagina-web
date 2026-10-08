@@ -1,0 +1,417 @@
+/* ===== Panel de administración (Petite Princesse) ===== */
+
+.admin {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin,
+.admin-conexion {
+  background: #fdf9f3;
+  color: #5b4960;
+  font-family: Arial, sans-serif;
+}
+
+.admin-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: white;
+  border-bottom: 1px solid #eaddea;
+  padding: 16px 6%;
+}
+
+.admin-cabecera h1 {
+  font-size: 22px;
+  color: #9b72a8;
+  letter-spacing: 1px;
+}
+
+.admin-cabecera p {
+  color: #83aaa5;
+  font-size: 13px;
+  margin-top: 3px;
+}
+
+.admin-cabecera-acciones {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-pestanas {
+  display: flex;
+  gap: 8px;
+  padding: 14px 6% 0;
+  flex-wrap: wrap;
+}
+
+.admin-pestanas button {
+  border: 1px solid #eaddea;
+  background: white;
+  color: #5b4960;
+  padding: 9px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.admin-pestanas button.activa {
+  background: #9b72a8;
+  border-color: #9b72a8;
+  color: white;
+}
+
+.admin-contenido {
+  flex: 1;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 22px 6% 40px;
+}
+
+/* Botones */
+.admin-boton {
+  border: 1px solid #9b72a8;
+  background: #9b72a8;
+  color: white;
+  padding: 9px 16px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.admin-boton:hover {
+  background: #875e95;
+  border-color: #875e95;
+}
+
+.admin-boton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.admin-boton-ghost {
+  background: white;
+  color: #9b72a8;
+}
+
+.admin-boton-ghost:hover {
+  background: #f7edf6;
+}
+
+.admin-boton-rojo {
+  background: #d9604f;
+  border-color: #d9604f;
+}
+
+.admin-boton-rojo:hover {
+  background: #c14d3d;
+  border-color: #c14d3d;
+}
+
+.admin-boton-primario {
+  background: #a45c33;
+  border-color: #a45c33;
+}
+
+.admin-boton-primario:hover {
+  background: #8a4c28;
+  border-color: #8a4c28;
+}
+
+.admin-boton-chico {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+/* Bloques */
+.admin-bloque {
+  background: white;
+  border: 1px solid #eaddea;
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-bloque-ancho {
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.admin-bloque h3 {
+  color: #775580;
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+
+.admin-bloque-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.admin-ayuda {
+  color: #8a7c91;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+.admin-aviso {
+  background: #fdeedd;
+  border: 1px solid #f5d9b8;
+  color: #7a5130;
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.admin-error {
+  background: #fdecec;
+  border: 1px solid #f3b8b8;
+  color: #b03a2a;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-ok {
+  background: #e9f7ee;
+  border: 1px solid #b9e3c8;
+  color: #2e7d4f;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-estado {
+  color: #8a7c91;
+  font-size: 15px;
+  padding: 24px 0;
+  text-align: center;
+}
+
+/* Campos y filas */
+.admin-campo {
+  display: block;
+  font-size: 14px;
+  font-weight: bold;
+  color: #5b4960;
+  margin-bottom: 14px;
+}
+
+.admin-en-linea {
+  flex: 1;
+  min-width: 130px;
+}
+
+.admin-entrada {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid #d8c4d8;
+  border-radius: 12px;
+  font-size: 14px;
+  color: #5b4960;
+  background: #fffdfb;
+  font-weight: normal;
+}
+
+.admin-entrada:focus {
+  outline: none;
+  border-color: #9b72a8;
+}
+
+textarea.admin-entrada {
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.admin-filas {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-fila {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.admin-fila .admin-clave {
+  max-width: 340px;
+  min-width: 180px;
+}
+
+.admin-fila .admin-entrada {
+  margin-top: 0;
+}
+
+.admin-casilla {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: bold;
+  margin: 14px 0;
+  cursor: pointer;
+}
+
+.admin-casilla input {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-sublista {
+  border-top: 1px dashed #eaddea;
+  padding-top: 14px;
+}
+
+.admin-sublista h4 {
+  color: #775580;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.admin-lista {
+  background: #fdf9f3;
+  border: 1px solid #eaddea;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+/* Fotos */
+.admin-rejilla-fotos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 18px 0 26px;
+}
+
+.admin-foto {
+  background: white;
+  border: 1px solid #eaddea;
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-foto img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.admin-foto-nombre {
+  font-size: 12px;
+  color: #5b4960;
+  padding: 8px 10px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-foto-pagina {
+  font-size: 12px;
+  color: #8a7c91;
+  padding: 2px 10px 8px;
+}
+
+.admin-foto-acciones {
+  display: flex;
+  gap: 6px;
+  padding: 0 10px 10px;
+  flex-wrap: wrap;
+}
+
+.admin-foto-subiendo {
+  font-size: 13px;
+  color: #8a7c91;
+  padding: 6px 0;
+}
+
+/* Conexión */
+.admin-conexion {
+  min-height: 100vh;
+  padding: 30px 6% 40px;
+}
+
+.admin-logotipo {
+  text-align: center;
+  margin-bottom: 26px;
+}
+
+.admin-logotipo h1 {
+  color: #9b72a8;
+  font-size: 26px;
+  letter-spacing: 1px;
+}
+
+.admin-logotipo p {
+  color: #83aaa5;
+  margin-top: 4px;
+}
+
+.admin-pasos {
+  margin: 0;
+  padding-left: 20px;
+  display: grid;
+  gap: 10px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.admin-pie {
+  text-align: center;
+  padding: 20px 6%;
+  border-top: 1px solid #eaddea;
+  background: white;
+  color: #8a7c91;
+  font-size: 13px;
+}
+
+/* Móvil */
+@media (max-width: 600px) {
+  .admin-pestanas {
+    padding: 12px 4% 0;
+  }
+
+  .admin-contenido {
+    padding: 18px 4% 30px;
+  }
+
+  .admin-fila {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .admin-fila .admin-clave {
+    max-width: none;
+    min-width: 0;
+  }
+
+  .admin-fila .admin-boton {
+    align-self: flex-start;
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "artecookies": {
+    "nota": "Tenemos 3 tamaños 🍪 · 6 cm $4.500 · 8 cm $5.200 · 10 cm $6.000",
+    "mostrarPrecios": false
+  },
+  "sweetcakes": {
+    "nota": "Cada pastel se cotiza según el diseño y el tamaño 🎂",
+    "mostrarPrecios": false,
+    "listas": [
+      {
+        "titulo": "Escoge el sabor de tu pastel:",
+        "opciones": [
+          "Naranja 🍊",
+          "Maracuya",
+          "Banano 🍌",
+          "Vainilla",
+          "Coco 🥥",
+          "Mora",
+          "Chocolate del diablo 🍫",
+          "Red velvet",
+          "Café ☕",
+          "Zanahoria 🥕",
+          "Yogurt con moras u arándanos 🫐",
+          "Yogurt y Limón 🍋",
+          "Yogurt y Frambuesa",
+          "Milo"
+        ]
+      },
+      {
+        "titulo": "Escoge el sabor de tu relleno:",
+        "opciones": [
+          "Ganache de chocolate blanco",
+          "Ganache de chocolate negro",
+          "Buttercream de mora",
+          "Buttercream de oreo",
+          "Buttercream de milo",
+          "Glaseado de maracuya",
+          "Glaseado de limón",
+          "Glaseado de naranja",
+          "Frosting de queso crema",
+          "Dulce de leche / Arequipe",
+          "Brigadeiro",
+          "Mermelada de mora",
+          "Mermelada de fresa",
+          "Fruta (fresa, cereza, mora, arándano, durazno, mango, manzana verde, piña, banano)"
+        ]
+      }
+    ]
+  }
+}

@@ -7,10 +7,12 @@ import path from 'node:path'
  *   - contenido/secciones.json           (qué sección pertenece a qué producto)
  *   - contenido/precios.json             (los precios editables)
  *   - contenido/info.json                (notas, listas de sabores, etc.)
+ *   - contenido/combos.json              (los combos editables)
  *
  * Escribe:
  *   - src/data/catalogo.ts
  *   - src/data/catalogoInfo.ts
+ *   - src/data/combos.ts
  *
  * Este script NO usa sharp ni las imágenes originales: solo mira los nombres
  * de archivo (que incluyen la página: <seccion>-<pagina>-<n>.webp).
@@ -23,6 +25,7 @@ const CONTENIDO = path.join(RAIZ, 'contenido')
 const PUBLIC_CATALOGO = path.join(RAIZ, 'public', 'catalogo')
 const SALIDA_CATALOGO = path.join(RAIZ, 'src', 'data', 'catalogo.ts')
 const SALIDA_INFO = path.join(RAIZ, 'src', 'data', 'catalogoInfo.ts')
+const SALIDA_COMBOS = path.join(RAIZ, 'src', 'data', 'combos.ts')
 
 function leerJson(ruta, respaldo) {
   if (!fs.existsSync(ruta)) return respaldo
@@ -152,6 +155,40 @@ export interface InfoCatalogo {
 export const catalogoInfo: Record<string, InfoCatalogo> = ${JSON.stringify(infoOrdenada, null, 2)}
 `,
 )
+
+// --- Combos ---
+
+const combosConfig = leerJson(path.join(CONTENIDO, 'combos.json'), { combos: [] })
+const listaCombos = Array.isArray(combosConfig.combos) ? combosConfig.combos : []
+
+const combosNormalizados = listaCombos.map((combo, i) => ({
+  id: String(combo?.id ?? `combo-${i + 1}`),
+  nombre: String(combo?.nombre ?? `Combo ${i + 1}`),
+  descripcion: String(combo?.descripcion ?? ''),
+  precio: String(combo?.precio ?? ''),
+  foto: String(combo?.foto ?? ''),
+}))
+
+fs.writeFileSync(
+  SALIDA_COMBOS,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/combos.json (o el panel de la web).
+
+export interface ComboProducto {
+  id: string
+  nombre: string
+  descripcion: string
+  /** Precio a mostrar; vacío = por confirmar. */
+  precio: string
+  /** Ruta de la foto; vacío = sin foto todavía. */
+  foto: string
+}
+
+export const combos: ComboProducto[] = ${JSON.stringify(combosNormalizados, null, 2)}
+`,
+)
+
+console.log(`Combos generados: ${combosNormalizados.length}`)
 
 console.log(`Catálogo generado: ${total} fotos`)
 for (const producto of Object.keys(fotosPorProducto).sort()) {

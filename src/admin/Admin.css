@@ -351,6 +351,24 @@ textarea.admin-entrada {
   padding: 6px 0;
 }
 
+/* Combos */
+.admin-combo-foto {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.admin-combo-foto-img {
+  width: 120px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid #eaddea;
+  background: #fdf9f3;
+}
+
 /* Conexión */
 .admin-conexion {
   min-height: 100vh;

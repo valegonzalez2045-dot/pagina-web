@@ -184,7 +184,11 @@ export function Carrito({
                   <ul className="carrito-lista">
                     {items.map((item) => (
                       <li key={item.id} className="carrito-item">
-                        <img src={item.src} alt={item.nombre} />
+                        {item.src ? (
+                          <img src={item.src} alt={item.nombre} />
+                        ) : (
+                          <span className="carrito-item-sin-foto">🎁</span>
+                        )}
                         <div className="carrito-item-info">
                           <p className="carrito-item-nombre">{item.nombre}</p>
                           <p className="carrito-item-precio">

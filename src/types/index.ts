@@ -11,13 +11,14 @@ export interface Producto {
   fotos: string[]
 }
 
-export interface Combo {
+export interface ComboProducto {
   id: string
-  titulo: string
+  nombre: string
   descripcion: string
-  textoBoton: string
-  /** Si existe, el botón enlaza (p. ej. a WhatsApp) en lugar de solo disparar el callback */
-  href?: string
+  /** Precio a mostrar; vacío = por confirmar. */
+  precio: string
+  /** Ruta de la foto; vacío = sin foto todavía. */
+  foto: string
 }
 
 export interface EnlaceContacto {

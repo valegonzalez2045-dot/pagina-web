@@ -6,8 +6,9 @@ import { borrarConfigLocal, guardarConfigLocal, leerConfigLocal } from './storag
 import { PanelPrecios } from './PanelPrecios'
 import { PanelProductos } from './PanelProductos'
 import { PanelFotos } from './PanelFotos'
+import { PanelCombos } from './PanelCombos'
 
-type Pestana = 'precios' | 'productos' | 'fotos'
+type Pestana = 'precios' | 'productos' | 'fotos' | 'combos'
 
 function FormularioConexion({ onConectado }: { onConectado: (cfg: ConfigGitHub) => void }) {
   const [owner, setOwner] = useState('')
@@ -160,12 +161,16 @@ export function AdminPanel() {
         <button type="button" className={pestana === 'fotos' ? 'activa' : ''} onClick={() => setPestana('fotos')}>
           Fotos
         </button>
+        <button type="button" className={pestana === 'combos' ? 'activa' : ''} onClick={() => setPestana('combos')}>
+          Combos
+        </button>
       </nav>
 
       <main className="admin-contenido">
         {pestana === 'precios' && <PanelPrecios cfg={cfg} />}
         {pestana === 'productos' && <PanelProductos cfg={cfg} />}
         {pestana === 'fotos' && <PanelFotos cfg={cfg} />}
+        {pestana === 'combos' && <PanelCombos cfg={cfg} />}
       </main>
 
       <footer className="admin-pie">

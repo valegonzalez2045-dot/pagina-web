@@ -106,7 +106,7 @@ function App() {
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />
 
-      <Combos combos={combos} />
+      <Combos combos={combos} onAgregar={agregarAlCarrito} />
 
       <Mayoreo
         beneficios={beneficiosMayoreo}

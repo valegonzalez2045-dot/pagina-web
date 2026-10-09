@@ -1,13 +1,14 @@
 import { Seccion } from '../ui/Seccion'
-import { Tarjeta } from '../ui/Tarjeta'
-import type { Combo } from '../../types'
+import { TarjetaCombo } from './TarjetaCombo'
+import type { ItemCarrito } from '../../types'
+import type { ComboProducto } from '../../data/combos'
 
 interface CombosProps {
-  combos: Combo[]
-  onSeleccionarCombo?: (combo: Combo) => void
+  combos: ComboProducto[]
+  onAgregar?: (item: ItemCarrito) => void
 }
 
-export function Combos({ combos, onSeleccionarCombo }: CombosProps) {
+export function Combos({ combos, onAgregar }: CombosProps) {
   return (
     <Seccion
       id="combos"
@@ -15,21 +16,17 @@ export function Combos({ combos, onSeleccionarCombo }: CombosProps) {
       titulo="Combos para enamorar 🎁"
       variante="color"
     >
-      <div className="dos-columnas">
+      <p className="combos-intro">
+        Combos armados para regalar, celebrar o consentirte 💕 Cada uno se agrega
+        directo a tu carrito.
+      </p>
+      <div className="productos">
         {combos.map((combo) => (
-          <Tarjeta key={combo.id} className="especial">
-            <h3>{combo.titulo}</h3>
-            <p>{combo.descripcion}</p>
-            {combo.href ? (
-              <a href={combo.href} target="_blank" rel="noreferrer">
-                {combo.textoBoton}
-              </a>
-            ) : (
-              <button onClick={() => onSeleccionarCombo?.(combo)}>
-                {combo.textoBoton}
-              </button>
-            )}
-          </Tarjeta>
+          <TarjetaCombo
+            key={combo.id}
+            combo={combo}
+            onAgregar={onAgregar}
+          />
         ))}
       </div>
     </Seccion>

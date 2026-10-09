@@ -209,6 +209,12 @@ h3 {
   line-height: 1.6;
 }
 
+.combo-descripcion {
+  margin: 0;
+  font-size: 14px;
+  color: #7c6a80;
+}
+
 .combo-precio {
   margin: 14px 0 0;
   font-size: 17px;

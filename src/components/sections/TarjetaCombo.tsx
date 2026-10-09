@@ -43,7 +43,7 @@ export function TarjetaCombo({ combo, onAgregar }: TarjetaComboProps) {
         <FotoPlaceholder etiqueta={`Foto ${combo.nombre}`} />
       )}
       <h3>{combo.nombre}</h3>
-      {combo.descripcion && <p className="producto-descripcion">{combo.descripcion}</p>}
+      {combo.descripcion && <p className="combo-descripcion">{combo.descripcion}</p>}
       <p className="combo-precio">{combo.precio || 'Precio por confirmar'}</p>
       <button
         type="button"

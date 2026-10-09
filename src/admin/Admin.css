@@ -352,12 +352,23 @@ textarea.admin-entrada {
 }
 
 /* Combos */
-.admin-combo-foto {
+.admin-combo-fotos {
   margin-top: 14px;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 14px;
   flex-wrap: wrap;
+}
+
+.admin-combo-fotos .admin-boton {
+  align-self: flex-start;
+}
+
+.admin-combo-foto {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .admin-combo-foto-img {

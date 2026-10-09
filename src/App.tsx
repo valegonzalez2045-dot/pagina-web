@@ -11,9 +11,11 @@ import { Nosotros } from './components/sections/Nosotros'
 import { Galeria } from './components/sections/Galeria'
 import { Contacto } from './components/sections/Contacto'
 import { ModalProducto } from './components/ui/ModalProducto'
+import { ModalCombo } from './components/ui/ModalCombo'
 import { AdminPanel } from './admin/AdminPanel'
 
 import type { ItemCarrito, Producto } from './types'
+import type { ComboProducto } from './data/combos'
 import { enlacesNavegacion } from './data/navegacion'
 import { productos } from './data/productos'
 import { combos } from './data/combos'
@@ -40,6 +42,7 @@ function cargarCarrito(): ItemCarrito[] {
 // App solo compone: decide qué datos recibe cada componente.
 function App() {
   const [productoAbierto, setProductoAbierto] = useState<Producto | null>(null)
+  const [comboAbierto, setComboAbierto] = useState<ComboProducto | null>(null)
   const [carrito, setCarrito] = useState<ItemCarrito[]>(cargarCarrito)
   const [enAdmin, setEnAdmin] = useState<boolean>(() =>
     window.location.hash.startsWith('#admin'),
@@ -106,7 +109,11 @@ function App() {
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />
 
-      <Combos combos={combos} onAgregar={agregarAlCarrito} />
+      <Combos
+        combos={combos}
+        onAgregar={agregarAlCarrito}
+        onVerCombo={setComboAbierto}
+      />
 
       <Mayoreo
         beneficios={beneficiosMayoreo}
@@ -141,6 +148,14 @@ function App() {
         <ModalProducto
           producto={productoAbierto}
           onCerrar={() => setProductoAbierto(null)}
+          onAgregar={agregarAlCarrito}
+        />
+      )}
+
+      {comboAbierto && (
+        <ModalCombo
+          combo={comboAbierto}
+          onCerrar={() => setComboAbierto(null)}
           onAgregar={agregarAlCarrito}
         />
       )}

@@ -209,17 +209,53 @@ h3 {
   line-height: 1.6;
 }
 
-.combo-descripcion {
-  margin: 0;
-  font-size: 14px;
-  color: #7c6a80;
-}
-
 .combo-precio {
   margin: 14px 0 0;
   font-size: 17px;
   font-weight: bold;
   color: var(--color-boton);
+}
+
+.combo-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.boton-ver-combo {
+  border: 2px solid var(--color-boton);
+  background: white;
+  color: var(--color-boton);
+  font-weight: bold;
+  padding: 9px 18px;
+  border-radius: 22px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.boton-ver-combo:hover {
+  background: var(--color-boton);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.combo-acciones .boton-producto {
+  margin-top: 0;
+  padding: 9px 18px;
+}
+
+.combo-modal-precio {
+  margin: 16px 26px 0;
+  font-size: 22px;
+  font-weight: bold;
+  color: var(--color-boton);
+}
+
+.combo-modal-agregar {
+  padding: 22px 26px 30px;
+  display: flex;
+  justify-content: center;
 }
 
 

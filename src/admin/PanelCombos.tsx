@@ -15,7 +15,8 @@ interface ComboEditor {
   nombre: string
   descripcion: string
   precio: string
-  foto: string
+  /** Rutas de las fotos (pueden ser varias por combo). */
+  fotos: string[]
 }
 
 const PREFIJO_FOTO = '/combos/'
@@ -26,7 +27,22 @@ function comboVacio(indice: number): ComboEditor {
     nombre: `Combo ${indice + 1}`,
     descripcion: '',
     precio: '',
-    foto: '',
+    fotos: [],
+  }
+}
+
+/** Acepta listas viejas con `foto` suelto (string) y las migra a `fotos`. */
+function normalizarCombo(c: Partial<ComboEditor & { foto?: string }>, indice: number): ComboEditor {
+  const fotosRaw = Array.isArray(c.fotos) ? c.fotos : []
+  const fotos = fotosRaw.map(String).filter(Boolean)
+  const fotoUnica = String(c.foto ?? '').trim()
+  if (fotos.length === 0 && fotoUnica) fotos.push(fotoUnica)
+  return {
+    id: String(c.id ?? `combo-${indice + 1}`),
+    nombre: String(c.nombre ?? `Combo ${indice + 1}`),
+    descripcion: String(c.descripcion ?? ''),
+    precio: String(c.precio ?? ''),
+    fotos,
   }
 }
 
@@ -47,8 +63,10 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         setCombos([])
         return
       }
-      const crudo = JSON.parse(archivo.texto) as { combos?: ComboEditor[] }
-      setCombos(crudo.combos ?? [])
+      const crudo = JSON.parse(archivo.texto) as {
+        combos?: Array<Partial<ComboEditor & { foto?: string }>>
+      }
+      setCombos((crudo.combos ?? []).map(normalizarCombo))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los combos.')
     } finally {
@@ -92,13 +110,15 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     setMensaje('')
     try {
       const comprimida = await comprimirImagen(archivo)
+      const siguiente = combo.fotos.length + 1
+      const nombre = `${combo.id}-${siguiente}.webp`
       await subirArchivo(
         cfg,
-        `public/combos/${combo.id}.webp`,
+        `public/combos/${nombre}`,
         comprimida.base64,
         `Subir foto del combo ${combo.id} desde el panel de Petite Princesse`,
       )
-      cambiar(combo.id, { foto: `${PREFIJO_FOTO}${combo.id}.webp` })
+      cambiar(combo.id, { fotos: [...combo.fotos, `${PREFIJO_FOTO}${nombre}`] })
       await guardar()
       setMensaje(`Foto del combo "${combo.nombre}" subida ✅`)
     } catch (e) {
@@ -108,23 +128,24 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     }
   }
 
-  const quitarFoto = async (combo: ComboEditor) => {
-    if (!window.confirm(`¿Quitar la foto de "${combo.nombre}"?`)) return
+  const quitarFoto = async (combo: ComboEditor, src: string) => {
+    if (!window.confirm(`¿Quitar esta foto de "${combo.nombre}"?`)) return
     setGuardando(true)
     setError('')
     setMensaje('')
     try {
+      const nombre = src.replace(PREFIJO_FOTO, '')
       const archivos = await listarCarpeta(cfg, 'public/combos')
-      const existente = archivos.find((a) => a.name === `${combo.id}.webp`)
+      const existente = archivos.find((a) => a.name === nombre)
       if (existente) {
         await borrarArchivo(
           cfg,
-          `public/combos/${combo.id}.webp`,
+          `public/combos/${nombre}`,
           existente.sha,
           `Quitar foto del combo ${combo.id} desde el panel de Petite Princesse`,
         )
       }
-      cambiar(combo.id, { foto: '' })
+      cambiar(combo.id, { fotos: combo.fotos.filter((f) => f !== src) })
       await guardar()
       setMensaje(`Foto del combo "${combo.nombre}" quitada ✕`)
     } catch (e) {
@@ -159,9 +180,9 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        Aquí llenas cada combo: nombre, descripción breve, precio (ej. «$12.000»;
-        déjalo vacío si se cotiza) y su foto. Todo se guarda en{' '}
-        <code>contenido/combos.json</code> y las fotos en{' '}
+        Aquí llenas cada combo: nombre, descripción (lo que incluye), precio
+        (ej. «$12.000»; déjalo vacío si se cotiza) y una o más fotos. Todo se
+        guarda en <code>contenido/combos.json</code> y las fotos en{' '}
         <code>public/combos/</code>.
       </p>
 
@@ -202,7 +223,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
             </div>
 
             <label className="admin-campo">
-              Descripción breve
+              Descripción (lo que incluye el combo)
               <input
                 className="admin-entrada"
                 value={combo.descripcion}
@@ -211,39 +232,42 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
               />
             </label>
 
-            <div className="admin-combo-foto">
-              {combo.foto ? (
-                <>
+            <div className="admin-combo-fotos">
+              {combo.fotos.map((src) => (
+                <div className="admin-combo-foto" key={src}>
                   <img
-                    src={`${urlCruda(cfg, `public/combos/${combo.id}.webp`)}?t=${Date.now()}`}
+                    src={`${urlCruda(cfg, `public/combos/${src.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
                     alt={combo.nombre}
                     className="admin-combo-foto-img"
                   />
                   <button
                     type="button"
                     className="admin-boton admin-boton-rojo admin-boton-chico"
-                    onClick={() => quitarFoto(combo)}
+                    onClick={() => quitarFoto(combo, src)}
                     disabled={guardando}
                   >
                     Quitar foto
                   </button>
-                </>
-              ) : (
-                <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
-                  {guardando ? 'Subiendo…' : 'Subir foto'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    disabled={guardando}
-                    onChange={(e) => {
-                      const archivo = e.target.files?.[0]
-                      e.target.value = ''
-                      if (archivo) void subirFoto(combo, archivo)
-                    }}
-                  />
-                </label>
-              )}
+                </div>
+              ))}
+              <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
+                {guardando
+                  ? 'Subiendo…'
+                  : combo.fotos.length > 0
+                    ? 'Subir otra foto'
+                    : 'Subir foto'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  disabled={guardando}
+                  onChange={(e) => {
+                    const archivo = e.target.files?.[0]
+                    e.target.value = ''
+                    if (archivo) void subirFoto(combo, archivo)
+                  }}
+                />
+              </label>
             </div>
           </section>
         ))}

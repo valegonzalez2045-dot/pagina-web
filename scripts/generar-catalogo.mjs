@@ -161,13 +161,19 @@ export const catalogoInfo: Record<string, InfoCatalogo> = ${JSON.stringify(infoO
 const combosConfig = leerJson(path.join(CONTENIDO, 'combos.json'), { combos: [] })
 const listaCombos = Array.isArray(combosConfig.combos) ? combosConfig.combos : []
 
-const combosNormalizados = listaCombos.map((combo, i) => ({
-  id: String(combo?.id ?? `combo-${i + 1}`),
-  nombre: String(combo?.nombre ?? `Combo ${i + 1}`),
-  descripcion: String(combo?.descripcion ?? ''),
-  precio: String(combo?.precio ?? ''),
-  foto: String(combo?.foto ?? ''),
-}))
+const combosNormalizados = listaCombos.map((combo, i) => {
+  // `fotos` es la nueva lista; si viene el viejo `foto` suelto, se migra a lista.
+  const fotos = (Array.isArray(combo?.fotos) ? combo.fotos : []).map(String).filter(Boolean)
+  const fotoUnica = String(combo?.foto ?? '').trim()
+  if (fotos.length === 0 && fotoUnica) fotos.push(fotoUnica)
+  return {
+    id: String(combo?.id ?? `combo-${i + 1}`),
+    nombre: String(combo?.nombre ?? `Combo ${i + 1}`),
+    descripcion: String(combo?.descripcion ?? ''),
+    precio: String(combo?.precio ?? ''),
+    fotos,
+  }
+})
 
 fs.writeFileSync(
   SALIDA_COMBOS,
@@ -180,8 +186,8 @@ export interface ComboProducto {
   descripcion: string
   /** Precio a mostrar; vacío = por confirmar. */
   precio: string
-  /** Ruta de la foto; vacío = sin foto todavía. */
-  foto: string
+  /** Rutas de las fotos; vacío = sin fotos todavía. */
+  fotos: string[]
 }
 
 export const combos: ComboProducto[] = ${JSON.stringify(combosNormalizados, null, 2)}

@@ -6,9 +6,10 @@ import type { ComboProducto } from '../../data/combos'
 interface CombosProps {
   combos: ComboProducto[]
   onAgregar?: (item: ItemCarrito) => void
+  onVerCombo?: (combo: ComboProducto) => void
 }
 
-export function Combos({ combos, onAgregar }: CombosProps) {
+export function Combos({ combos, onAgregar, onVerCombo }: CombosProps) {
   return (
     <Seccion
       id="combos"
@@ -17,8 +18,8 @@ export function Combos({ combos, onAgregar }: CombosProps) {
       variante="color"
     >
       <p className="combos-intro">
-        Combos armados para regalar, celebrar o consentirte 💕 Cada uno se agrega
-        directo a tu carrito.
+        Combos armados para regalar, celebrar o consentirte 💕 Toca un combo
+        para ver todo lo que incluye y agrégarlo directo a tu carrito.
       </p>
       <div className="productos">
         {combos.map((combo) => (
@@ -26,6 +27,7 @@ export function Combos({ combos, onAgregar }: CombosProps) {
             key={combo.id}
             combo={combo}
             onAgregar={onAgregar}
+            onVerCombo={onVerCombo}
           />
         ))}
       </div>

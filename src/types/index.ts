@@ -17,8 +17,8 @@ export interface ComboProducto {
   descripcion: string
   /** Precio a mostrar; vacío = por confirmar. */
   precio: string
-  /** Ruta de la foto; vacío = sin foto todavía. */
-  foto: string
+  /** Rutas de las fotos; vacío = sin fotos todavía. */
+  fotos: string[]
 }
 
 export interface EnlaceContacto {

@@ -27,7 +27,7 @@ export function ModalProducto({
   const notas =
     info?.notas ??
     (info?.nota ? [info.nota] : ([] as string[]))
-  const { lema, cuerpo } = separarDescripcion(producto.descripcion)
+  const { cuerpo } = separarDescripcion(producto.descripcion)
   const [ampliada, setAmpliada] = useState<number | null>(null)
   const [agregado, setAgregado] = useState<string | null>(null)
   const temporizador = useRef<number | null>(null)
@@ -102,9 +102,8 @@ export function ModalProducto({
           </header>
 
           <div className="modal-producto-cuerpo">
-            {(lema || cuerpo) && (
+            {cuerpo && (
               <div className="modal-descripcion">
-                <h3>{lema}</h3>
                 <p>{cuerpo}</p>
               </div>
             )}

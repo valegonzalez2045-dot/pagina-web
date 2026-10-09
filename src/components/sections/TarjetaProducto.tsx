@@ -15,7 +15,7 @@ export function TarjetaProducto({
 }: TarjetaProductoProps) {
   // La foto de la tarjeta es la del producto; si no hay, usa la primera del catálogo.
   const primeraFoto = producto.fotos[0] ?? catalogo[producto.id]?.[0]?.src
-  const { lema, cuerpo } = separarDescripcion(producto.descripcion)
+  const { cuerpo } = separarDescripcion(producto.descripcion)
 
   return (
     <Tarjeta>
@@ -30,7 +30,6 @@ export function TarjetaProducto({
         <FotoPlaceholder etiqueta={`Foto ${producto.nombre}`} />
       )}
       <h3>{producto.nombre}</h3>
-      {lema && <p className="producto-lema">{lema}</p>}
       {cuerpo && <p className="producto-descripcion">{cuerpo}</p>}
       <button
         className="boton-producto"

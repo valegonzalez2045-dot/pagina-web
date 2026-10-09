@@ -191,13 +191,6 @@ h3 {
   line-height: 1.6;
 }
 
-.producto-lema {
-  margin: 0 0 8px;
-  font-weight: bold;
-  font-size: 15px;
-  color: var(--color-boton);
-}
-
 .producto-descripcion {
   display: -webkit-box;
   -webkit-line-clamp: 3;
@@ -707,12 +700,6 @@ footer p {
   background: white;
   border: 1px solid #eaddea;
   border-radius: 14px;
-}
-
-.modal-descripcion h3 {
-  font-size: 17px;
-  color: var(--color-boton);
-  margin: 0 0 6px;
 }
 
 .modal-descripcion p {

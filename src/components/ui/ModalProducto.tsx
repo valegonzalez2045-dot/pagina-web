@@ -4,6 +4,7 @@ import { catalogo } from '../../data/catalogo'
 import type { FotoCatalogo } from '../../data/catalogo'
 import { catalogoInfo } from '../../data/catalogoInfo'
 import { precioANumero } from '../../utils/precio'
+import { separarDescripcion } from '../../utils/descripcion'
 import { whatsappUrl } from '../../data/contacto'
 import { Lightbox } from './Lightbox'
 
@@ -26,6 +27,7 @@ export function ModalProducto({
   const notas =
     info?.notas ??
     (info?.nota ? [info.nota] : ([] as string[]))
+  const { lema, cuerpo } = separarDescripcion(producto.descripcion)
   const [ampliada, setAmpliada] = useState<number | null>(null)
   const [agregado, setAgregado] = useState<string | null>(null)
   const temporizador = useRef<number | null>(null)
@@ -100,6 +102,13 @@ export function ModalProducto({
           </header>
 
           <div className="modal-producto-cuerpo">
+            {(lema || cuerpo) && (
+              <div className="modal-descripcion">
+                <h3>{lema}</h3>
+                <p>{cuerpo}</p>
+              </div>
+            )}
+
             {notas.length > 0 && (
               <div className="catalogo-notas">
                 {notas.map((nota) => (

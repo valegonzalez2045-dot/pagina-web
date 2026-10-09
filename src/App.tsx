@@ -108,7 +108,6 @@ function App() {
         lineasTitulo={['Chocolate que se derrite', 'en la boca 🍫']}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
         accion={{ etiqueta: 'Ver qué hay rico', href: '#productos' }}
-        imagen={{ src: '/mascota.webp', alt: 'La mascota de Petite Princesse' }}
       />
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />

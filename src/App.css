@@ -114,23 +114,8 @@ nav a:hover {
 
 .inicio-texto {
   max-width: 700px;
-}
-
-.inicio-mascota {
-  max-width: 220px;
-  margin: 0 auto 28px;
-  background: #fffdf6;
-  border-radius: 28px;
-  padding: 12px;
-  box-shadow: 0 12px 30px rgba(164, 92, 51, 0.18);
-  border: 2px solid #fdf0d7;
-}
-
-.inicio-mascota img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 20px;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .pequeno,
@@ -145,7 +130,7 @@ nav a:hover {
 .inicio h1 {
   font-family: var(--fuente-marca);
   font-weight: 700;
-  font-size: 52px;
+  font-size: 54px;
   line-height: 1.15;
   color: #775580;
   margin-bottom: 25px;
@@ -154,7 +139,7 @@ nav a:hover {
 .inicio p:not(.pequeno) {
   font-size: 18px;
   line-height: 1.7;
-  margin-bottom: 30px;
+  margin: 0 auto 30px;
   max-width: 600px;
 }
 
@@ -393,6 +378,12 @@ footer {
   color: white;
 }
 
+footer strong {
+  font-family: var(--fuente-marca);
+  font-weight: 700;
+  letter-spacing: 1.5px;
+}
+
 footer p {
   margin-top: 8px;
 }
@@ -411,7 +402,7 @@ footer p {
   }
 
   .inicio h1 {
-    font-size: 40px;
+    font-size: 42px;
   }
 
   .productos {

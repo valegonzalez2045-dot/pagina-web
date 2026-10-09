@@ -7,6 +7,8 @@ interface InicioProps {
   lineasTitulo: string[]
   descripcion: string
   accion: AccionEnlace
+  /** Imagen decorativa de la portada (la mascota de la marca). */
+  imagen?: { src: string; alt: string }
 }
 
 export function Inicio({
@@ -14,10 +16,17 @@ export function Inicio({
   lineasTitulo,
   descripcion,
   accion,
+  imagen,
 }: InicioProps) {
   return (
     <section id="inicio" className="inicio">
       <div className="inicio-texto">
+        {imagen && (
+          <div className="inicio-mascota">
+            <img src={imagen.src} alt={imagen.alt} />
+          </div>
+        )}
+
         <p className="pequeno">{etiqueta}</p>
 
         <h1>

@@ -12,6 +12,7 @@ import { Galeria } from './components/sections/Galeria'
 import { Contacto } from './components/sections/Contacto'
 import { ModalProducto } from './components/ui/ModalProducto'
 import { ModalCombo } from './components/ui/ModalCombo'
+import { FondoDecorativo } from './components/ui/FondoDecorativo'
 import { AdminPanel } from './admin/AdminPanel'
 
 import type { ItemCarrito, Producto } from './types'
@@ -93,6 +94,8 @@ function App() {
 
   return (
     <div className="pagina">
+      <FondoDecorativo />
+
       <Encabezado
         nombreMarca={NOMBRE_MARCA}
         eslogan={ESLOGAN}
@@ -105,6 +108,7 @@ function App() {
         lineasTitulo={['Chocolate que se derrite', 'en la boca 🍫']}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
         accion={{ etiqueta: 'Ver qué hay rico', href: '#productos' }}
+        imagen={{ src: '/mascota.webp', alt: 'La mascota de Petite Princesse' }}
       />
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />

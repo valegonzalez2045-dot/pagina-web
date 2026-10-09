@@ -10,6 +10,11 @@
      (antes era #9b72a8 / #875e95). */
   --color-boton: #a45c33;
   --color-boton-hover: #8a4c28;
+
+  /* Fondo amarillo vainilla muy claro + tipografías dulces */
+  --fondo-crema: #fdf6e3;
+  --fuente-marca: 'Poppins', 'Nunito', 'Segoe UI', sans-serif;
+  --fuente-texto: 'Nunito', 'Segoe UI', Arial, sans-serif;
 }
 
 html {
@@ -17,9 +22,9 @@ html {
 }
 
 body {
-  font-family: Arial, sans-serif;
+  font-family: var(--fuente-texto);
   color: #5b4960;
-  background: #fdf9f3;
+  background: var(--fondo-crema);
 }
 
 a {
@@ -45,9 +50,10 @@ a {
 
 .logo {
   color: #9b72a8;
-  font-size: 20px;
-  font-weight: bold;
-  letter-spacing: 2px;
+  font-family: var(--fuente-marca);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
 }
 
 .logo span {
@@ -101,13 +107,30 @@ nav a:hover {
   align-items: center;
   padding: 80px 10%;
   background:
-    radial-gradient(circle at 80% 30%, #d9f1ed 0, transparent 25%),
-    radial-gradient(circle at 20% 80%, #f5dbea 0, transparent 30%),
-    #fdf7f1;
+    radial-gradient(circle at 82% 22%, #fbe3c9 0, transparent 26%),
+    radial-gradient(circle at 18% 82%, #fadce9 0, transparent 30%),
+    linear-gradient(180deg, #fdf7e6, #fdf2d7);
 }
 
 .inicio-texto {
   max-width: 700px;
+}
+
+.inicio-mascota {
+  max-width: 220px;
+  margin: 0 auto 28px;
+  background: #fffdf6;
+  border-radius: 28px;
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(164, 92, 51, 0.18);
+  border: 2px solid #fdf0d7;
+}
+
+.inicio-mascota img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 20px;
 }
 
 .pequeno,
@@ -120,8 +143,9 @@ nav a:hover {
 }
 
 .inicio h1 {
-  font-family: Georgia, serif;
-  font-size: 55px;
+  font-family: var(--fuente-marca);
+  font-weight: 700;
+  font-size: 52px;
   line-height: 1.15;
   color: #775580;
   margin-bottom: 25px;
@@ -143,17 +167,20 @@ nav a:hover {
 }
 
 .seccion-color {
-  background: #f8edf7;
+  background: #faf1dc;
 }
 
 h2 {
-  font-family: Georgia, serif;
+  font-family: var(--fuente-marca);
+  font-weight: 700;
   font-size: 42px;
   color: #775580;
   margin-bottom: 45px;
 }
 
 h3 {
+  font-family: var(--fuente-marca);
+  font-weight: 600;
   color: #76567d;
   margin-bottom: 12px;
 }
@@ -1248,5 +1275,94 @@ footer p {
   .carrito-caja {
     max-height: 92vh;
     border-radius: 20px 20px 0 0;
+  }
+}
+
+/* FONDO DECORATIVO: pequeños detalles cálidos que flotan en el fondo */
+
+.fondo-decorativo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fondo-decorativo span {
+  position: absolute;
+  opacity: 0.15;
+  line-height: 1;
+  user-select: none;
+  animation: flotar 7s ease-in-out infinite alternate;
+}
+
+.fondo-decorativo .fd-1 {
+  top: 6%;
+  left: 4%;
+  font-size: 46px;
+}
+
+.fondo-decorativo .fd-2 {
+  top: 15%;
+  right: 6%;
+  font-size: 38px;
+  animation-delay: -2s;
+}
+
+.fondo-decorativo .fd-3 {
+  top: 46%;
+  left: 3%;
+  font-size: 42px;
+  animation-delay: -4s;
+}
+
+.fondo-decorativo .fd-4 {
+  top: 28%;
+  left: 13%;
+  font-size: 28px;
+  animation-delay: -1s;
+}
+
+.fondo-decorativo .fd-5 {
+  bottom: 18%;
+  left: 8%;
+  font-size: 44px;
+  animation-delay: -3s;
+}
+
+.fondo-decorativo .fd-6 {
+  bottom: 36%;
+  right: 4%;
+  font-size: 40px;
+  animation-delay: -5s;
+}
+
+.fondo-decorativo .fd-7 {
+  top: 62%;
+  right: 15%;
+  font-size: 30px;
+  animation-delay: -6s;
+}
+
+.fondo-decorativo .fd-8 {
+  bottom: 9%;
+  right: 17%;
+  font-size: 36px;
+  animation-delay: -2.5s;
+}
+
+@keyframes flotar {
+  from {
+    transform: translateY(0) rotate(-6deg);
+  }
+  to {
+    transform: translateY(-14px) rotate(6deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .fondo-decorativo span {
+    opacity: 0.12;
+    font-size: 30px !important;
   }
 }

@@ -27,4 +27,6 @@ dist-ssr
 /*.png
 imagenes-extraidas/
 public/catalogo-preview/
+fotos web/
+informe-fotos.json
 *.tsbuildinfo

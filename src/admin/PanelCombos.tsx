@@ -212,16 +212,22 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     setError('')
     setMensaje('')
     try {
-      const nombre = src.replace(PREFIJO_FOTO, '')
-      const archivos = await listarCarpeta(cfg, 'public/combos')
-      const existente = archivos.find((a) => a.name === nombre)
-      if (existente) {
-        await borrarArchivo(
-          cfg,
-          `public/combos/${nombre}`,
-          existente.sha,
-          `Quitar foto del combo ${combo.id} desde el panel de Petite Princesse`,
-        )
+      // Solo se borra el archivo si ningún otro combo ni la tira lo usan.
+      const usadaEnOtro =
+        muestra.includes(src) ||
+        combos.some((c) => c.id !== combo.id && c.fotos.includes(src))
+      if (!usadaEnOtro) {
+        const nombre = src.replace(PREFIJO_FOTO, '')
+        const archivos = await listarCarpeta(cfg, 'public/combos')
+        const existente = archivos.find((a) => a.name === nombre)
+        if (existente) {
+          await borrarArchivo(
+            cfg,
+            `public/combos/${nombre}`,
+            existente.sha,
+            `Quitar foto del combo ${combo.id} desde el panel de Petite Princesse`,
+          )
+        }
       }
       const nuevaLista = combos.map((c) =>
         c.id === combo.id ? { ...c, fotos: c.fotos.filter((f) => f !== src) } : c,
@@ -234,6 +240,28 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     } finally {
       setGuardando(false)
     }
+  }
+
+  /** Asigna (o quita) una foto de la tira de combos a un combo concreto. */
+  const alternarFotoMuestra = async (combo: ComboEditor, src: string) => {
+    const yaEsta = combo.fotos.includes(src)
+    const nuevaLista = combos.map((c) =>
+      c.id === combo.id
+        ? {
+            ...c,
+            fotos: yaEsta
+              ? c.fotos.filter((f) => f !== src)
+              : [...c.fotos, src],
+          }
+        : c,
+    )
+    setCombos(nuevaLista)
+    await guardar(nuevaLista)
+    setMensaje(
+      yaEsta
+        ? `Foto quitada de "${combo.nombre}" ✕`
+        : `Foto asignada a "${combo.nombre}" ✅`,
+    )
   }
 
   const agregarCombo = () => {
@@ -403,6 +431,40 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
                 />
               </label>
             </div>
+
+            {muestra.length > 0 && (
+              <div className="admin-combo-banco">
+                <p className="admin-aviso">
+                  ¿Alguno de estos combos es el de este combo? Toca la foto y
+                  queda asignada (tócala otra vez para quitarla).
+                </p>
+                <div className="admin-combo-miniaturas">
+                  {muestra.map((src) => {
+                    const asignada = combo.fotos.includes(src)
+                    return (
+                      <button
+                        key={src}
+                        type="button"
+                        className={`admin-mini-foto${asignada ? ' activa' : ''}`}
+                        onClick={() => void alternarFotoMuestra(combo, src)}
+                        disabled={guardando}
+                        title={
+                          asignada
+                            ? 'Quitar de este combo'
+                            : 'Asignar a este combo'
+                        }
+                        aria-pressed={asignada}
+                      >
+                        <img
+                          src={`${urlCruda(cfg, `public/combos/${src.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
+                          alt=""
+                        />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </section>
         ))}
       </div>

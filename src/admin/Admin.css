@@ -385,6 +385,47 @@ textarea.admin-entrada {
   background: #fdf9f3;
 }
 
+/* Miniaturas para asignar una foto de la tira a un combo */
+.admin-combo-banco {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed #e4d7e6;
+}
+
+.admin-combo-miniaturas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-mini-foto {
+  width: 74px;
+  height: 74px;
+  padding: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fdf9f3;
+  border: 2px solid #e4d7e6;
+  transition: 0.2s;
+}
+
+.admin-mini-foto:hover {
+  border-color: #c7a9c9;
+}
+
+.admin-mini-foto.activa {
+  border-color: var(--color-boton, #a45c33);
+  box-shadow: 0 0 0 3px rgba(164, 92, 51, 0.18);
+}
+
+.admin-mini-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 /* Conexión */
 .admin-conexion {
   min-height: 100vh;

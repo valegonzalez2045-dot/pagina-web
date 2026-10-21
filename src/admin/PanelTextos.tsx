@@ -5,6 +5,10 @@ import { guardarTexto, leerTexto } from './github'
 interface TituloEditor {
   subtitulo: string
   titulo: string
+  /** Párrafo de la sección (solo Contacto). */
+  texto?: string
+  /** Nota de abajo de la sección (solo Contacto). */
+  nota?: string
 }
 
 type TitulosEditor = Record<string, TituloEditor>
@@ -21,7 +25,7 @@ const SECCIONES: { id: string; etiqueta: string; ayuda: string }[] = [
   { id: 'mayoreo', etiqueta: 'Mayoreo', ayuda: 'El texto chiquito y el título de la sección de mayoreo.' },
   { id: 'nosotros', etiqueta: 'Nosotros', ayuda: 'El texto chiquito y el título de la sección "Nosotros".' },
   { id: 'galeria', etiqueta: 'Galería', ayuda: 'El texto chiquito y el título de la sección de galería.' },
-  { id: 'contacto', etiqueta: 'Contacto', ayuda: 'El texto chiquito y el título de la sección de contacto.' },
+  { id: 'contacto', etiqueta: 'Contacto', ayuda: 'El texto chiquito, el título, el párrafo y la nota de abajo de la sección de contacto.' },
 ]
 
 export function PanelTextos({ cfg }: { cfg: ConfigGitHub }) {
@@ -42,7 +46,12 @@ export function PanelTextos({ cfg }: { cfg: ConfigGitHub }) {
           Object.fromEntries(
             Object.entries(crudo).map(([id, t]) => [
               id,
-              { subtitulo: String(t?.subtitulo ?? ''), titulo: String(t?.titulo ?? '') },
+              {
+                subtitulo: String(t?.subtitulo ?? ''),
+                titulo: String(t?.titulo ?? ''),
+                texto: String(t?.texto ?? ''),
+                nota: String(t?.nota ?? ''),
+              },
             ]),
           ),
         )
@@ -65,6 +74,8 @@ export function PanelTextos({ cfg }: { cfg: ConfigGitHub }) {
         ...actual[id],
         subtitulo: actual[id]?.subtitulo ?? '',
         titulo: actual[id]?.titulo ?? '',
+        texto: actual[id]?.texto ?? '',
+        nota: actual[id]?.nota ?? '',
         ...parcial,
       },
     }))
@@ -76,10 +87,24 @@ export function PanelTextos({ cfg }: { cfg: ConfigGitHub }) {
     setError('')
     setMensaje('')
     try {
+      // Solo se guardan los textos extra de la sección de contacto.
+      const salida: Record<string, Record<string, string>> = {}
+      for (const [id, valor] of Object.entries(titulos)) {
+        const item: Record<string, string> = {
+          subtitulo: valor?.subtitulo ?? '',
+          titulo: valor?.titulo ?? '',
+        }
+        if (id === 'contacto') {
+          if ((valor?.texto ?? '').trim()) item.texto = valor.texto ?? ''
+          if ((valor?.nota ?? '').trim()) item.nota = valor.nota ?? ''
+        }
+        salida[id] = item
+      }
+
       await guardarTexto(
         cfg,
         'contenido/titulos.json',
-        `${JSON.stringify(titulos, null, 2)}\n`,
+        `${JSON.stringify(salida, null, 2)}\n`,
         'Actualizar los títulos de la página desde el panel de Petite Princesse',
       )
       const vacios = SECCIONES.filter(
@@ -156,6 +181,31 @@ export function PanelTextos({ cfg }: { cfg: ConfigGitHub }) {
                 />
               )}
             </label>
+
+            {seccion.id === 'contacto' && (
+              <>
+                <label className="admin-campo">
+                  El párrafo de la sección
+                  <textarea
+                    className="admin-entrada"
+                    rows={2}
+                    value={valor.texto ?? ''}
+                    placeholder="Escríbenos y arma tu pedido o pide tu cotización hoy mismo."
+                    onChange={(e) => cambiar(seccion.id, { texto: e.target.value })}
+                  />
+                </label>
+
+                <label className="admin-campo">
+                  La nota de abajo
+                  <input
+                    className="admin-entrada"
+                    value={valor.nota ?? ''}
+                    placeholder="🚚 Domicilios locales y envíos nacionales."
+                    onChange={(e) => cambiar(seccion.id, { nota: e.target.value })}
+                  />
+                </label>
+              </>
+            )}
           </section>
         )
       })}

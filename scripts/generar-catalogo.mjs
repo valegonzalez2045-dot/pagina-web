@@ -367,10 +367,14 @@ const titulosConfig = leerJson(path.join(CONTENIDO, 'titulos.json'), {})
 const titulos = {}
 if (titulosConfig && typeof titulosConfig === 'object' && !Array.isArray(titulosConfig)) {
   for (const [id, cfg] of Object.entries(titulosConfig)) {
-    titulos[id] = {
+    const seccion = {
       subtitulo: String(cfg?.subtitulo ?? ''),
       titulo: String(cfg?.titulo ?? ''),
     }
+    // Textos extra de algunas secciones (por ejemplo, el párrafo de contacto).
+    if (cfg?.texto) seccion.texto = String(cfg.texto)
+    if (cfg?.nota) seccion.nota = String(cfg.nota)
+    titulos[id] = seccion
   }
 }
 
@@ -384,6 +388,10 @@ export interface TituloSeccion {
   subtitulo: string
   /** Título grande de la sección. */
   titulo: string
+  /** Párrafo de la sección (solo en Contacto). */
+  texto?: string
+  /** Nota de abajo de la sección (solo en Contacto). */
+  nota?: string
 }
 
 export const titulos: Record<string, TituloSeccion> = ${JSON.stringify(titulos, null, 2)}

@@ -6,6 +6,10 @@ export interface TituloSeccion {
   subtitulo: string
   /** Título grande de la sección. */
   titulo: string
+  /** Párrafo de la sección (solo en Contacto). */
+  texto?: string
+  /** Nota de abajo de la sección (solo en Contacto). */
+  nota?: string
 }
 
 export const titulos: Record<string, TituloSeccion> = {
@@ -35,6 +39,8 @@ export const titulos: Record<string, TituloSeccion> = {
   },
   "contacto": {
     "subtitulo": "¿YA TE ANTOJASTE?",
-    "titulo": "Haz tu pedido 💕"
+    "titulo": "Haz tu pedido 💕",
+    "texto": "Escríbenos y arma tu pedido o pide tu cotización hoy mismo.",
+    "nota": "🚚 Domicilios locales y envíos nacionales."
   }
 }

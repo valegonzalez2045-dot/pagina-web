@@ -140,8 +140,8 @@ function App() {
 
       <Contacto
         enlaces={enlacesContacto}
-        pregunta="¿Ya te antojaste? Escríbenos y arma tu pedido o pide tu cotización hoy mismo."
-        notaEnvios="🚚 Domicilios locales y envíos nacionales."
+        pregunta={titulos.contacto?.texto}
+        notaEnvios={titulos.contacto?.nota}
       />
 
       <PiePagina

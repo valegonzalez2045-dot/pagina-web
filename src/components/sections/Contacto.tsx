@@ -4,12 +4,17 @@ import { titulos } from '../../data/titulos'
 
 interface ContactoProps {
   enlaces: EnlaceContacto[]
-  pregunta: string
-  notaEnvios: string
+  /** Párrafo de la sección. Si no se pasa, sale el del panel (contenido/titulos.json). */
+  pregunta?: string
+  /** Nota de abajo. Si no se pasa, sale la del panel (contenido/titulos.json). */
+  notaEnvios?: string
 }
 
 export function Contacto({ enlaces, pregunta, notaEnvios }: ContactoProps) {
   const seccion = titulos.contacto
+  const textoPregunta =
+    pregunta ?? seccion?.texto ?? 'Escríbenos y arma tu pedido o pide tu cotización hoy mismo.'
+  const textoNota = notaEnvios ?? seccion?.nota ?? '🚚 Domicilios locales y envíos nacionales.'
 
   return (
     <Seccion
@@ -18,7 +23,7 @@ export function Contacto({ enlaces, pregunta, notaEnvios }: ContactoProps) {
       titulo={seccion?.titulo ?? 'Haz tu pedido 💕'}
       variante="contacto"
     >
-      <p>{pregunta}</p>
+      <p>{textoPregunta}</p>
 
       <div className="contactos">
         {enlaces.map((enlace) => (
@@ -28,7 +33,7 @@ export function Contacto({ enlaces, pregunta, notaEnvios }: ContactoProps) {
         ))}
       </div>
 
-      <p className="domicilios">{notaEnvios}</p>
+      <p className="domicilios">{textoNota}</p>
     </Seccion>
   )
 }

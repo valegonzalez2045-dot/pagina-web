@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { BotonEnlace } from '../ui/BotonEnlace'
 import type { AccionEnlace } from '../../types'
 
@@ -7,6 +7,8 @@ interface InicioProps {
   lineasTitulo: string[]
   descripcion: string
   accion: AccionEnlace
+  /** Logo de la marca (imagen) que se muestra arriba del mensaje. */
+  logo?: { src: string; alt: string }
 }
 
 export function Inicio({
@@ -14,10 +16,23 @@ export function Inicio({
   lineasTitulo,
   descripcion,
   accion,
+  logo,
 }: InicioProps) {
+  // Si la imagen del logo no existe, se oculta para no mostrar un ícono roto.
+  const [logoVisible, setLogoVisible] = useState(true)
+
   return (
     <section id="inicio" className="inicio">
       <div className="inicio-texto">
+        {logo && logoVisible && (
+          <img
+            className="inicio-logo"
+            src={logo.src}
+            alt={logo.alt}
+            onError={() => setLogoVisible(false)}
+          />
+        )}
+
         <p className="pequeno">{etiqueta}</p>
 
         <h1>

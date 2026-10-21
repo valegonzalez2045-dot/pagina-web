@@ -121,6 +121,14 @@ nav a:hover {
   text-align: center;
 }
 
+.inicio-logo {
+  display: block;
+  width: min(210px, 55%);
+  height: auto;
+  margin: 0 auto 26px;
+  object-fit: contain;
+}
+
 .pequeno,
 .titulo-pequeno {
   color: #78a7a1;

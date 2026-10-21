@@ -107,7 +107,8 @@ function App() {
         etiqueta="DULCERÍA ARTESANAL HECHA CON AMOR"
         lineasTitulo={['Chocolate que se derrite', 'en la boca 🍫']}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
-        accion={{ etiqueta: 'Ver qué hay rico', href: '#productos' }}
+        accion={{ etiqueta: 'Explorar', href: '#productos' }}
+        logo={{ src: '/logo-marca.webp', alt: 'PETITE PRINCESSE' }}
       />
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />

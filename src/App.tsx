@@ -20,6 +20,7 @@ import type { ComboProducto } from './data/combos'
 import { enlacesNavegacion } from './data/navegacion'
 import { productos } from './data/productos'
 import { combos } from './data/combos'
+import { logoMarca } from './data/logo'
 import { beneficiosMayoreo } from './data/mayoreo'
 import { fotosGaleria } from './data/galeria'
 import { enlacesContacto } from './data/contacto'
@@ -108,7 +109,7 @@ function App() {
         lineasTitulo={['Chocolate que se derrite', 'en la boca 🍫']}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
         accion={{ etiqueta: 'Explorar', href: '#productos' }}
-        logo={{ src: '/logo-marca.webp', alt: 'PETITE PRINCESSE' }}
+        logo={logoMarca.activo ? { src: logoMarca.src, alt: logoMarca.alt } : undefined}
       />
 
       <Productos productos={productos} onVerProducto={setProductoAbierto} />

@@ -26,6 +26,7 @@ const PUBLIC_CATALOGO = path.join(RAIZ, 'public', 'catalogo')
 const SALIDA_CATALOGO = path.join(RAIZ, 'src', 'data', 'catalogo.ts')
 const SALIDA_INFO = path.join(RAIZ, 'src', 'data', 'catalogoInfo.ts')
 const SALIDA_COMBOS = path.join(RAIZ, 'src', 'data', 'combos.ts')
+const SALIDA_LOGO = path.join(RAIZ, 'src', 'data', 'logo.ts')
 
 function leerJson(ruta, respaldo) {
   if (!fs.existsSync(ruta)) return respaldo
@@ -200,3 +201,34 @@ console.log(`Catálogo generado: ${total} fotos`)
 for (const producto of Object.keys(fotosPorProducto).sort()) {
   console.log(`  ${producto}: ${fotosPorProducto[producto].length}`)
 }
+
+// --- Logo de la marca ---
+
+const logoConfig = leerJson(path.join(CONTENIDO, 'logo.json'), {})
+const logoActivo = logoConfig.activo !== false
+const logoArchivo = String(logoConfig.archivo ?? 'logo-marca.webp').trim() || 'logo-marca.webp'
+const logoAlt = String(logoConfig.alt ?? 'PETITE PRINCESSE')
+const logoVersion = String(logoConfig.version ?? '1')
+
+fs.writeFileSync(
+  SALIDA_LOGO,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/logo.json (o el panel de la web).
+
+export interface LogoMarca {
+  /** Si es false, la web no muestra el logo. */
+  activo: boolean
+  /** Ruta de la imagen (con versión para que se actualice al instante). */
+  src: string
+  alt: string
+}
+
+export const logoMarca: LogoMarca = {
+  activo: ${logoActivo},
+  src: '/${logoArchivo}?v=${logoVersion}',
+  alt: ${JSON.stringify(logoAlt)},
+}
+`,
+)
+
+console.log(`Logo: ${logoActivo ? logoArchivo : 'oculto'}`)

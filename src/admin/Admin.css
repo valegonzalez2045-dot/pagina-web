@@ -341,8 +341,7 @@ textarea.admin-entrada {
 .admin-foto-acciones {
   display: flex;
   gap: 6px;
-  padding: 0 10px 10px;
-  flex-wrap: wrap;
+  padding: 0 10px 10px;  flex-wrap: wrap;
 }
 
 .admin-foto-subiendo {
@@ -443,4 +442,22 @@ textarea.admin-entrada {
   .admin-fila .admin-boton {
     align-self: flex-start;
   }
+}
+/* LOGO DE LA MARCA */
+.admin-logo-vista {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 26px;
+  margin: 18px 0;
+  background: #fdf6e3;
+  border: 1px dashed #e3d4bb;
+  border-radius: 16px;
+}
+
+.admin-logo-vista img {
+  max-width: 240px;
+  max-height: 240px;
+  object-fit: contain;
+  mix-blend-mode: multiply;
 }

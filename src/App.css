@@ -127,6 +127,8 @@ nav a:hover {
   height: auto;
   margin: 0 auto 26px;
   object-fit: contain;
+  /* El logo tiene fondo blanco: este modo lo funde con el crema y no se ve un cuadro. */
+  mix-blend-mode: multiply;
 }
 
 .pequeno,

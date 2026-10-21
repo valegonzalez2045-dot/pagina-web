@@ -296,7 +296,7 @@ export const combos: ComboProducto[] = [
   }
 ]
 
-/** Fotos de combos que se muestran en la tira de arriba de la sección. */
+/** Fotos de combos que se muestran en la tira de la sección. */
 export const muestraCombos: string[] = [
   "/combos/muestra-1.webp",
   "/combos/muestra-2.webp",
@@ -306,3 +306,9 @@ export const muestraCombos: string[] = [
   "/combos/muestra-6.webp",
   "/combos/muestra-7.webp"
 ]
+
+/** Foto principal de la sección (sale al lado del botón). */
+export const destacadaCombos: string = "/combos/muestra-1.webp"
+
+/** Texto del botón que despliega los combos. */
+export const tituloBotonCombos: string = "Encuentra el detalle perfecto para regalar"

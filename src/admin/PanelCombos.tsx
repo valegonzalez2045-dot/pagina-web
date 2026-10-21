@@ -57,6 +57,12 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
   const [mensaje, setMensaje] = useState('')
   const [combos, setCombos] = useState<ComboEditor[]>([])
   const [muestra, setMuestra] = useState<string[]>([])
+  /** Foto que sale al lado del botón de la sección. */
+  const [destacada, setDestacada] = useState('')
+  /** Texto del botón que despliega los combos. */
+  const [tituloBoton, setTituloBoton] = useState(
+    'Encuentra el detalle perfecto para regalar',
+  )
 
   const cargar = async () => {
     setCargando(true)
@@ -71,12 +77,18 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       const crudo = JSON.parse(archivo.texto) as {
         combos?: Array<Partial<ComboEditor & { foto?: string }>>
         muestra?: string[]
+        destacada?: string
+        tituloBoton?: string
       }
       setCombos((crudo.combos ?? []).map(normalizarCombo))
-      setMuestra(
-        Array.isArray(crudo.muestra)
-          ? crudo.muestra.map(String).filter(Boolean)
-          : [],
+      const listaMuestra = Array.isArray(crudo.muestra)
+        ? crudo.muestra.map(String).filter(Boolean)
+        : []
+      setMuestra(listaMuestra)
+      setDestacada(String(crudo.destacada ?? '').trim() || listaMuestra[0] || '')
+      setTituloBoton(
+        String(crudo.tituloBoton ?? '').trim() ||
+          'Encuentra el detalle perfecto para regalar',
       )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los combos.')
@@ -105,7 +117,14 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         cfg,
         'contenido/combos.json',
         JSON.stringify(
-          { muestra: fotosMuestra ?? muestra, combos: lista ?? combos },
+          {
+            destacada: destacada || (fotosMuestra ?? muestra)[0] || '',
+            tituloBoton:
+              tituloBoton.trim() ||
+              'Encuentra el detalle perfecto para regalar',
+            muestra: fotosMuestra ?? muestra,
+            combos: lista ?? combos,
+          },
           null,
           2,
         ),
@@ -113,7 +132,68 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       )
       setMensaje('Combos guardados ✅ La web se actualiza sola en un par de minutos.')
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo guardar los combos.')
+      setError(e instanceof Error ? e.message : 'No se pudieron guardar los combos.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  /** Sube la foto principal que sale al lado del botón de la sección. */
+  const subirDestacada = async (archivo: File) => {
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const comprimida = await comprimirImagen(archivo)
+      const existentes = await listarCarpeta(cfg, 'public/combos')
+      const numeros = existentes
+        .map((a) => a.name.match(/^destacada-(\d+)\.webp$/)?.[1])
+        .filter(Boolean)
+        .map(Number)
+      const siguiente = (numeros.length ? Math.max(...numeros) : 0) + 1
+      const nombre = `destacada-${siguiente}.webp`
+      await subirArchivo(
+        cfg,
+        `public/combos/${nombre}`,
+        comprimida.base64,
+        'Subir la imagen principal de combos desde el panel de Petite Princesse',
+      )
+      setDestacada(`${PREFIJO_FOTO}${nombre}`)
+      setMensaje('Imagen principal subida ✅ (recuerda guardar los cambios)')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo subir la imagen.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  /** Quita la imagen principal (si no la usa nadie más, borra el archivo). */
+  const quitarDestacada = async () => {
+    if (!window.confirm('¿Quitar la imagen principal?')) return
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const nombre = destacada.replace(PREFIJO_FOTO, '')
+      const usadaEnOtro =
+        muestra.includes(destacada) ||
+        combos.some((c) => c.fotos.includes(destacada))
+      if (!usadaEnOtro && nombre) {
+        const archivos = await listarCarpeta(cfg, 'public/combos')
+        const existente = archivos.find((a) => a.name === nombre)
+        if (existente) {
+          await borrarArchivo(
+            cfg,
+            `public/combos/${nombre}`,
+            existente.sha,
+            'Quitar la imagen principal de combos desde el panel de Petite Princesse',
+          )
+        }
+      }
+      setDestacada('')
+      setMensaje('Imagen principal quitada ✕')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo quitar la imagen.')
     } finally {
       setGuardando(false)
     }
@@ -264,6 +344,18 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     )
   }
 
+  /** Pone una foto como la principal del combo (la que se ve en la web). */
+  const ponerPrincipal = async (combo: ComboEditor, src: string) => {
+    const nuevaLista = combos.map((c) =>
+      c.id === combo.id
+        ? { ...c, fotos: [src, ...c.fotos.filter((f) => f !== src)] }
+        : c,
+    )
+    setCombos(nuevaLista)
+    await guardar(nuevaLista)
+    setMensaje(`"${combo.nombre}" ahora muestra esa foto ⭐`)
+  }
+
   const agregarCombo = () => {
     const siguiente = combos.length + 1
     setCombos((actual) => [...actual, comboVacio(siguiente)])
@@ -297,11 +389,91 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
 
       <section className="admin-bloque">
         <div className="admin-bloque-cabecera">
+          <h3>Botón e imagen principal</h3>
+        </div>
+        <p className="admin-aviso">
+          Así se ve el combos en la página: el botón de la izquierda (con la foto
+          al lado). Al tocarlo se despliegan todos los combos.
+        </p>
+
+        <label className="admin-campo">
+          Texto del botón
+          <input
+            className="admin-entrada"
+            value={tituloBoton}
+            placeholder="Encuentra el detalle perfecto para regalar"
+            onChange={(e) => setTituloBoton(e.target.value)}
+          />
+        </label>
+
+        <div className="admin-combo-fotos">
+          {destacada && (
+            <div className="admin-combo-foto admin-combo-foto-destacada">
+              <img
+                src={`${urlCruda(cfg, `public/combos/${destacada.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
+                alt="Imagen principal de combos"
+                className="admin-combo-foto-img"
+              />
+              <span className="admin-combo-foto-ok">✓ Es la imagen principal</span>
+              <button
+                type="button"
+                className="admin-boton admin-boton-rojo admin-boton-chico"
+                onClick={() => void quitarDestacada()}
+                disabled={guardando}
+              >
+                Quitar
+              </button>
+            </div>
+          )}
+          <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
+            {guardando ? 'Subiendo…' : 'Subir imagen principal'}
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              disabled={guardando}
+              onChange={(e) => {
+                const archivo = e.target.files?.[0]
+                e.target.value = ''
+                if (archivo) void subirDestacada(archivo)
+              }}
+            />
+          </label>
+        </div>
+
+        {muestra.length > 0 && (
+          <div className="admin-combo-banco">
+            <p className="admin-aviso">
+              ¿Quieres una de estas fotos como imagen principal? Tócala.
+            </p>
+            <div className="admin-combo-miniaturas">
+              {muestra.map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  className={`admin-mini-foto${destacada === src ? ' activa' : ''}`}
+                  onClick={() => setDestacada(src)}
+                  title="Usar como imagen principal"
+                  aria-pressed={destacada === src}
+                >
+                  <img
+                    src={`${urlCruda(cfg, `public/combos/${src.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
+                    alt=""
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="admin-bloque">
+        <div className="admin-bloque-cabecera">
           <h3>Tira de fotos de combos</h3>
         </div>
         <p className="admin-aviso">
-          Son las fotos que salen en la parte de arriba de la sección Combos
-          (se pueden ampliar al tocarlas).
+          Son las fotos que salen al desplegar la sección de combos (se pueden
+          ampliar al tocarlas).
         </p>
         <div className="admin-combo-fotos">
           {muestra.map((src) => (
@@ -395,13 +567,25 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
             </label>
 
             <div className="admin-combo-fotos">
-              {combo.fotos.map((src) => (
+              {combo.fotos.map((src, indiceFoto) => (
                 <div className="admin-combo-foto" key={src}>
                   <img
                     src={`${urlCruda(cfg, `public/combos/${src.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
                     alt={combo.nombre}
                     className="admin-combo-foto-img"
                   />
+                  {indiceFoto === 0 ? (
+                    <span className="admin-combo-foto-ok">✓ Foto principal</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="admin-boton admin-boton-chico"
+                      onClick={() => void ponerPrincipal(combo, src)}
+                      disabled={guardando}
+                    >
+                      ⭐ Usar como principal
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="admin-boton admin-boton-rojo admin-boton-chico"

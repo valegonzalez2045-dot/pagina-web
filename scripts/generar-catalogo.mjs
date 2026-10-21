@@ -223,6 +223,11 @@ const listaCombos = Array.isArray(combosConfig.combos) ? combosConfig.combos : [
 const muestraCombos = Array.isArray(combosConfig.muestra)
   ? combosConfig.muestra.map(String).filter(Boolean)
   : []
+// La imagen que sale al lado del botón de la sección y el texto del botón.
+const destacadaCombos = String(combosConfig.destacada ?? '').trim() || muestraCombos[0] || ''
+const tituloBotonCombos =
+  String(combosConfig.tituloBoton ?? '').trim() ||
+  'Encuentra el detalle perfecto para regalar'
 
 const combosNormalizados = listaCombos.map((combo, i) => {
   // `fotos` es la nueva lista; si viene el viejo `foto` suelto, se migra a lista.
@@ -258,8 +263,14 @@ export interface ComboProducto {
 
 export const combos: ComboProducto[] = ${JSON.stringify(combosNormalizados, null, 2)}
 
-/** Fotos de combos que se muestran en la tira de arriba de la sección. */
+/** Fotos de combos que se muestran en la tira de la sección. */
 export const muestraCombos: string[] = ${JSON.stringify(muestraCombos, null, 2)}
+
+/** Foto principal de la sección (sale al lado del botón). */
+export const destacadaCombos: string = ${JSON.stringify(destacadaCombos)}
+
+/** Texto del botón que despliega los combos. */
+export const tituloBotonCombos: string = ${JSON.stringify(tituloBotonCombos)}
 `,
 )
 

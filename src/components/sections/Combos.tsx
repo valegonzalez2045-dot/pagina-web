@@ -8,14 +8,26 @@ import { titulos } from '../../data/titulos'
 
 interface CombosProps {
   combos: ComboProducto[]
-  /** Fotos reales de combos que se muestran en la tira de arriba. */
+  /** Fotos reales de combos que se muestran en la tira. */
   muestra?: string[]
+  /** Foto principal que sale al lado del botón. */
+  destacada?: string
+  /** Texto del botón que despliega los combos. */
+  tituloBoton?: string
   onAgregar?: (item: ItemCarrito) => void
   onVerCombo?: (combo: ComboProducto) => void
 }
 
-export function Combos({ combos, muestra = [], onAgregar, onVerCombo }: CombosProps) {
+export function Combos({
+  combos,
+  muestra = [],
+  destacada = '',
+  tituloBoton = 'Encuentra el detalle perfecto para regalar',
+  onAgregar,
+  onVerCombo,
+}: CombosProps) {
   const [indice, setIndice] = useState<number | null>(null)
+  const [abierto, setAbierto] = useState(false)
   const seccion = titulos.combos
 
   const irAnterior = () =>
@@ -62,35 +74,64 @@ export function Combos({ combos, muestra = [], onAgregar, onVerCombo }: CombosPr
         para ver todo lo que incluye y agrégalo directo a tu carrito.
       </p>
 
-      {muestra.length > 0 && (
-        <>
-          <h3 className="combos-muestra-titulo">Así se ven nuestros combos 📸</h3>
-          <div className="combos-muestra">
-            {muestra.map((src, i) => (
-              <button
-                key={src}
-                type="button"
-                className="combos-muestra-foto"
-                onClick={() => setIndice(i)}
-                aria-label={`Ampliar foto de combo ${i + 1}`}
-              >
-                <img src={src} alt={`Combo ${i + 1}`} loading="lazy" />
-              </button>
+      {/* Botón + foto principal: al tocarlo se despliegan los combos */}
+      <div className="combos-cta">
+        <button
+          type="button"
+          className="combos-cta-boton"
+          onClick={() => setAbierto((v) => !v)}
+          aria-expanded={abierto}
+          aria-controls="combos-lista"
+        >
+          <span className="combos-cta-texto">{tituloBoton}</span>
+          <span className="combos-cta-flecha" aria-hidden="true">
+            {abierto ? '▲' : '▼'}
+          </span>
+        </button>
+
+        {destacada && (
+          <img
+            className="combos-cta-foto"
+            src={destacada}
+            alt="Combo de regalo"
+            loading="lazy"
+          />
+        )}
+      </div>
+
+      {abierto && (
+        <div className="combos-desplegado" id="combos-lista">
+          {muestra.length > 0 && (
+            <>
+              <h3 className="combos-muestra-titulo">Así se ven nuestros combos 📸</h3>
+              <div className="combos-muestra">
+                {muestra.map((src, i) => (
+                  <button
+                    key={src}
+                    type="button"
+                    className="combos-muestra-foto"
+                    onClick={() => setIndice(i)}
+                    aria-label={`Ampliar foto de combo ${i + 1}`}
+                  >
+                    <img src={src} alt={`Combo ${i + 1}`} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="productos">
+            {combos.map((combo) => (
+              <TarjetaCombo
+                key={combo.id}
+                combo={combo}
+                onAgregar={onAgregar}
+                onVerCombo={onVerCombo}
+              />
             ))}
           </div>
-        </>
+        </div>
       )}
-
-      <div className="productos">
-        {combos.map((combo) => (
-          <TarjetaCombo
-            key={combo.id}
-            combo={combo}
-            onAgregar={onAgregar}
-            onVerCombo={onVerCombo}
-          />
-        ))}
-      </div>
 
       {fotoActual && indice !== null && (
         <Lightbox

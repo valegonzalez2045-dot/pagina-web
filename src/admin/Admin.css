@@ -424,6 +424,20 @@ textarea.admin-entrada {
   background: #fdf9f3;
 }
 
+.admin-combo-foto-destacada .admin-combo-foto-img {
+  width: 160px;
+  height: 128px;
+  border-color: #c9a9d6;
+  box-shadow: 0 6px 18px rgba(120, 80, 130, 0.16);
+}
+
+.admin-combo-foto-ok {
+  font-size: 12px;
+  font-weight: bold;
+  color: #4c7a52;
+  text-align: center;
+}
+
 /* Miniaturas para asignar una foto de la tira a un combo */
 .admin-combo-banco {
   margin-top: 14px;

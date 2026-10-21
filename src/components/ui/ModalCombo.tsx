@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { ItemCarrito } from '../../types'
 import type { ComboProducto } from '../../data/combos'
 import { precioANumero } from '../../utils/precio'
-import { Lightbox } from './Lightbox'
+import { FotoPlaceholder } from './FotoPlaceholder'
 
 interface ModalComboProps {
   combo: ComboProducto
@@ -11,10 +11,11 @@ interface ModalComboProps {
 }
 
 export function ModalCombo({ combo, onCerrar, onAgregar }: ModalComboProps) {
-  const fotos = combo.fotos
-  const [ampliada, setAmpliada] = useState<number | null>(null)
   const [agregado, setAgregado] = useState(false)
   const temporizador = useRef<number | null>(null)
+
+  // Solo se muestra una foto: la principal del combo.
+  const fotoPrincipal = combo.fotos[0]
 
   const agregarAlCarrito = () => {
     if (!onAgregar) return
@@ -32,16 +33,14 @@ export function ModalCombo({ combo, onCerrar, onAgregar }: ModalComboProps) {
     temporizador.current = window.setTimeout(() => setAgregado(false), 1400)
   }
 
-  // Escape cierra la foto ampliada o el modal
+  // Escape cierra el modal
   useEffect(() => {
     const manejarTecla = (evento: KeyboardEvent) => {
-      if (evento.key !== 'Escape') return
-      if (ampliada !== null) setAmpliada(null)
-      else onCerrar()
+      if (evento.key === 'Escape') onCerrar()
     }
     window.addEventListener('keydown', manejarTecla)
     return () => window.removeEventListener('keydown', manejarTecla)
-  }, [onCerrar, ampliada])
+  }, [onCerrar])
 
   // La página no se desplaza mientras el modal está abierto
   useEffect(() => {
@@ -51,101 +50,67 @@ export function ModalCombo({ combo, onCerrar, onAgregar }: ModalComboProps) {
     }
   }, [])
 
-  const fotoActual = ampliada === null ? undefined : fotos[ampliada]
-
   return (
-    <>
+    <div
+      className="modal-producto"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Combo ${combo.nombre}`}
+      onClick={onCerrar}
+    >
       <div
-        className="modal-producto"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Combo ${combo.nombre}`}
-        onClick={onCerrar}
+        className="modal-producto-caja modal-combo-caja"
+        onClick={(evento) => evento.stopPropagation()}
       >
-        <div
-          className="modal-producto-caja"
-          onClick={(evento) => evento.stopPropagation()}
+        <button
+          type="button"
+          className="modal-producto-cerrar modal-combo-cerrar"
+          onClick={onCerrar}
+          aria-label="Cerrar"
         >
-          <header className="modal-producto-cabecera">
-            <div>
-              <h2>{combo.nombre}</h2>
-              <p>
-                {fotos.length > 0
-                  ? `${combo.fotos.length} ${combo.fotos.length === 1 ? 'foto' : 'fotos'}`
-                  : 'Muy pronto más fotos'}
-              </p>
+          ✕
+        </button>
+
+        <div className="modal-producto-cuerpo combo-modal-cuerpo">
+          {fotoPrincipal ? (
+            <img
+              className="combo-modal-foto"
+              src={fotoPrincipal}
+              alt={combo.nombre}
+            />
+          ) : (
+            <div className="combo-modal-foto combo-modal-foto-vacia">
+              <FotoPlaceholder
+                etiqueta={`Foto ${combo.nombre}`}
+                emoji={combo.emoji}
+              />
             </div>
+          )}
+
+          <h2 className="combo-modal-titulo">{combo.nombre}</h2>
+
+          {combo.descripcion && (
+            <div className="modal-descripcion">
+              <p>{combo.descripcion}</p>
+            </div>
+          )}
+
+          <div className="combo-modal-precio">
+            {combo.precio || 'Precio por confirmar'}
+          </div>
+
+          <div className="combo-modal-agregar">
             <button
               type="button"
-              className="modal-producto-cerrar"
-              onClick={onCerrar}
-              aria-label="Cerrar"
+              className="catalogo-cotizar-boton"
+              onClick={agregarAlCarrito}
+              aria-label={`Agregar ${combo.nombre} al carrito`}
             >
-              ✕
+              {agregado ? '✓ Agregado al carrito' : 'Agregar al carrito 🛒'}
             </button>
-          </header>
-
-          <div className="modal-producto-cuerpo">
-            {combo.descripcion && (
-              <div className="modal-descripcion">
-                <p>{combo.descripcion}</p>
-              </div>
-            )}
-
-            <div className="combo-modal-precio">
-              {combo.precio || 'Precio por confirmar'}
-            </div>
-
-            {fotos.length > 0 ? (
-              <ul className="catalogo-lista">
-                {fotos.map((src, i) => (
-                  <li key={src}>
-                    <button
-                      type="button"
-                      className="catalogo-foto"
-                      onClick={() => setAmpliada(i)}
-                      aria-label={`Ampliar foto ${i + 1} del combo ${combo.nombre}`}
-                    >
-                      <img src={src} alt={`${combo.nombre} ${i + 1}`} loading="lazy" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="catalogo-vacio">
-                Aún no tengo fotos de este combo. Vuelve pronto 💕
-              </p>
-            )}
-
-            <div className="combo-modal-agregar">
-              <button
-                type="button"
-                className="catalogo-cotizar-boton"
-                onClick={agregarAlCarrito}
-                aria-label={`Agregar ${combo.nombre} al carrito`}
-              >
-                {agregado ? '✓ Agregado al carrito' : 'Agregar al carrito 🛒'}
-              </button>
-            </div>
           </div>
         </div>
       </div>
-
-      {fotoActual && ampliada !== null && (
-        <Lightbox
-          foto={{ id: fotoActual, etiqueta: combo.nombre, src: fotoActual }}
-          posicion={`${ampliada + 1} de ${fotos.length}`}
-          onCerrar={() => setAmpliada(null)}
-          onAnterior={() =>
-            setAmpliada((i) =>
-              i === null ? i : (i - 1 + fotos.length) % fotos.length,
-            )
-          }
-          onSiguiente={() =>
-            setAmpliada((i) => (i === null ? i : (i + 1) % fotos.length))
-          }
-        />
-      )}
-    </>
+    </div>
   )
 }

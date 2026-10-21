@@ -19,7 +19,7 @@ import type { ItemCarrito, Producto } from './types'
 import type { ComboProducto } from './data/combos'
 import { enlacesNavegacion } from './data/navegacion'
 import { productos } from './data/productos'
-import { combos, muestraCombos } from './data/combos'
+import { combos, destacadaCombos, muestraCombos, tituloBotonCombos } from './data/combos'
 import { logoMarca } from './data/logo'
 import { beneficiosMayoreo } from './data/mayoreo'
 import { fotosGaleria } from './data/galeria'
@@ -115,6 +115,8 @@ function App() {
       <Combos
         combos={combos}
         muestra={muestraCombos}
+        destacada={destacadaCombos}
+        tituloBoton={tituloBotonCombos}
         onAgregar={agregarAlCarrito}
         onVerCombo={setComboAbierto}
       />

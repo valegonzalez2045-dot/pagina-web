@@ -1,4 +1,15 @@
 {
+  "destacada": "/combos/muestra-1.webp",
+  "tituloBoton": "Encuentra el detalle perfecto para regalar",
+  "muestra": [
+    "/combos/muestra-1.webp",
+    "/combos/muestra-2.webp",
+    "/combos/muestra-3.webp",
+    "/combos/muestra-4.webp",
+    "/combos/muestra-5.webp",
+    "/combos/muestra-6.webp",
+    "/combos/muestra-7.webp"
+  ],
   "combos": [
     {
       "id": "combo-1",
@@ -280,14 +291,5 @@
       "precio": "$30.600",
       "fotos": []
     }
-  ],
-  "muestra": [
-    "/combos/muestra-1.webp",
-    "/combos/muestra-2.webp",
-    "/combos/muestra-3.webp",
-    "/combos/muestra-4.webp",
-    "/combos/muestra-5.webp",
-    "/combos/muestra-6.webp",
-    "/combos/muestra-7.webp"
   ]
 }

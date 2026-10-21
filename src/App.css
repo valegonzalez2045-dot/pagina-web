@@ -229,6 +229,96 @@ h3 {
   line-height: 1.6;
 }
 
+/* Botón que despliega los combos + foto principal al lado */
+
+.combos-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  flex-wrap: wrap;
+  margin: 0 auto 10px;
+  max-width: 1000px;
+}
+
+.combos-cta-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: none;
+  padding: 18px 30px;
+  border-radius: 26px;
+  background: var(--color-boton);
+  color: white;
+  font-size: 1.05rem;
+  font-weight: bold;
+  font-family: 'Quicksand', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(120, 80, 130, 0.28);
+  transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
+}
+
+.combos-cta-boton:hover,
+.combos-cta-boton:focus-visible {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 34px rgba(120, 80, 130, 0.34);
+  background: var(--color-boton-hover);
+}
+
+.combos-cta-texto {
+  text-align: left;
+}
+
+.combos-cta-flecha {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.combos-cta-foto {
+  width: 210px;
+  height: 210px;
+  object-fit: cover;
+  border-radius: 26px;
+  border: 1px solid #eaddea;
+  background: white;
+  box-shadow: 0 12px 28px rgba(120, 80, 130, 0.16);
+}
+
+/* Los combos que se despliegan */
+
+.combos-desplegado {
+  animation: combos-aparece 0.45s ease both;
+}
+
+@keyframes combos-aparece {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 700px) {
+  .combos-cta {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .combos-cta-boton {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .combos-cta-foto {
+    width: 170px;
+    height: 170px;
+  }
+}
+
 /* Tira de fotos reales de combos */
 
 .combos-muestra-titulo {
@@ -317,6 +407,48 @@ h3 {
   font-size: 22px;
   font-weight: bold;
   color: var(--color-boton);
+}
+
+/* Modal del combo: una foto, el nombre, el texto y el precio */
+
+.modal-combo-caja {
+  position: relative;
+  max-width: 720px;
+}
+
+.modal-combo-cerrar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  box-shadow: 0 4px 14px rgba(60, 30, 65, 0.22);
+}
+
+.combo-modal-cuerpo {
+  padding: 0 0 8px;
+}
+
+.combo-modal-foto {
+  width: 100%;
+  max-height: 420px;
+  object-fit: cover;
+  display: block;
+  background: linear-gradient(135deg, #f8e5f2, #dff1ed);
+}
+
+.combo-modal-foto-vacia {
+  height: 300px;
+}
+
+.combo-modal-foto-vacia .espacio-foto {
+  height: 100%;
+  margin-bottom: 0;
+}
+
+.combo-modal-titulo {
+  margin: 22px 26px 0;
+  font-size: 26px;
+  color: #5a3f66;
 }
 
 .combo-modal-agregar {

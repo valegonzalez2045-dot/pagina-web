@@ -63,6 +63,8 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
   const [tituloBoton, setTituloBoton] = useState(
     'Encuentra el detalle perfecto para regalar',
   )
+  /** Título de la tira de fotos que sale en la galería. */
+  const [tituloTira, setTituloTira] = useState('Combos 🎁')
 
   const cargar = async () => {
     setCargando(true)
@@ -79,6 +81,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         muestra?: string[]
         destacada?: string
         tituloBoton?: string
+        tituloTira?: string
       }
       setCombos((crudo.combos ?? []).map(normalizarCombo))
       const listaMuestra = Array.isArray(crudo.muestra)
@@ -90,6 +93,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         String(crudo.tituloBoton ?? '').trim() ||
           'Encuentra el detalle perfecto para regalar',
       )
+      setTituloTira(String(crudo.tituloTira ?? '').trim())
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los combos.')
     } finally {
@@ -122,6 +126,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
             tituloBoton:
               tituloBoton.trim() ||
               'Encuentra el detalle perfecto para regalar',
+            tituloTira: tituloTira.trim(),
             muestra: fotosMuestra ?? muestra,
             combos: lista ?? combos,
           },
@@ -199,7 +204,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     }
   }
 
-  /** Sube una foto para la tira de combos que sale arriba de la sección. */
+  /** Sube una foto para la tira de combos que sale en la galería. */
   const subirMuestra = async (archivo: File) => {
     setGuardando(true)
     setError('')
@@ -469,12 +474,24 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
 
       <section className="admin-bloque">
         <div className="admin-bloque-cabecera">
-          <h3>Tira de fotos de combos</h3>
+          <h3>Fotos de combos (tira de la galería)</h3>
         </div>
         <p className="admin-aviso">
-          Son las fotos que salen al desplegar la sección de combos (se pueden
-          ampliar al tocarlas).
+          Estas fotos salen en la galería, en una tira horizontal que se desliza
+          para verlas todas (se pueden ampliar al tocarlas). También son las
+          fotos que puedes asignarle a cada combo más abajo.
         </p>
+
+        <label className="admin-campo">
+          Título de la tira
+          <input
+            className="admin-entrada"
+            value={tituloTira}
+            placeholder="Combos 🎁 (vacío = sin título)"
+            onChange={(e) => setTituloTira(e.target.value)}
+          />
+        </label>
+
         <div className="admin-combo-fotos">
           {muestra.map((src) => (
             <div className="admin-combo-foto" key={src}>

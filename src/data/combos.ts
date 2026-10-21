@@ -312,3 +312,6 @@ export const destacadaCombos: string = "/combos/muestra-1.webp"
 
 /** Texto del botón que despliega los combos. */
 export const tituloBotonCombos: string = "Encuentra el detalle perfecto para regalar"
+
+/** Título de la tira horizontal de fotos que sale en la galería. */
+export const tituloTiraCombos: string = "Combos 🎁"

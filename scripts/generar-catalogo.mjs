@@ -228,6 +228,8 @@ const destacadaCombos = String(combosConfig.destacada ?? '').trim() || muestraCo
 const tituloBotonCombos =
   String(combosConfig.tituloBoton ?? '').trim() ||
   'Encuentra el detalle perfecto para regalar'
+// Título de la tira horizontal de fotos que sale en la galería.
+const tituloTiraCombos = String(combosConfig.tituloTira ?? '').trim()
 
 const combosNormalizados = listaCombos.map((combo, i) => {
   // `fotos` es la nueva lista; si viene el viejo `foto` suelto, se migra a lista.
@@ -271,6 +273,9 @@ export const destacadaCombos: string = ${JSON.stringify(destacadaCombos)}
 
 /** Texto del botón que despliega los combos. */
 export const tituloBotonCombos: string = ${JSON.stringify(tituloBotonCombos)}
+
+/** Título de la tira horizontal de fotos que sale en la galería. */
+export const tituloTiraCombos: string = ${JSON.stringify(tituloTiraCombos)}
 `,
 )
 

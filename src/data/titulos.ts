@@ -18,7 +18,7 @@ export const titulos: Record<string, TituloSeccion> = {
     "titulo": "Elige tu antojo"
   },
   "combos": {
-    "subtitulo": "REGALA DULZURA",
+    "subtitulo": "",
     "titulo": "Combos para enamorar 🎁"
   },
   "mayoreo": {

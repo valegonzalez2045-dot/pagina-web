@@ -168,10 +168,16 @@ export function PanelPrecios({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        El precio de cada foto se toma con esta prioridad: <strong>por foto</strong> &gt;{' '}
+        El precio de cada foto se toma con esta prioridad:{' '}
+        <strong>el que le pongas a esa foto en la pestaña «Fotos»</strong> &gt;{' '}
         <strong>por página</strong> &gt; <strong>por sección</strong> &gt;{' '}
         <strong>por producto</strong>. Si dejas vacío un cuadro, esa foto mostrará
         «Precio por confirmar».
+      </p>
+      <p className="admin-ayuda">
+        Lo de esta pestaña son los <strong>precios generales</strong> (por página,
+        sección o producto). El precio de <strong>cada foto</strong> se edita en la
+        pestaña <strong>«Fotos»</strong>, donde también puedes moverlas de lugar.
       </p>
 
       <EditorMapa

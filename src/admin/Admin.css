@@ -356,6 +356,45 @@ textarea.admin-entrada {
   padding: 6px 0;
 }
 
+/* Fotos: posición, precio y arrastre (pestaña Fotos) */
+.admin-foto {
+  position: relative;
+  cursor: grab;
+}
+
+.admin-foto.arrastrando {
+  opacity: 0.45;
+  border-style: dashed;
+  border-color: #c9a9d6;
+}
+
+.admin-foto-posicion {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 2;
+  background: rgba(74, 44, 86, 0.85);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 2px 9px;
+}
+
+.admin-foto-precio {
+  padding: 0 10px 8px;
+}
+
+.admin-foto-precio .admin-entrada {
+  font-size: 13px;
+  padding: 7px 9px;
+}
+
+.admin-foto-acciones .admin-boton-chico {
+  padding: 5px 9px;
+  font-size: 13px;
+}
+
 /* Combos */
 .admin-combo-fotos {
   margin-top: 14px;

@@ -6,6 +6,7 @@ import path from 'node:path'
  *   - public/catalogo/<seccion>/*.webp   (las fotos ya optimizadas)
  *   - contenido/secciones.json           (qué sección pertenece a qué producto)
  *   - contenido/precios.json             (los precios editables)
+ *   - contenido/fotos.json                (orden y precio de cada foto del catálogo)
  *   - contenido/info.json                (notas, listas de sabores, etc.)
  *   - contenido/combos.json              (los combos editables)
  *   - contenido/logo.json                (el logo de la portada)
@@ -76,16 +77,26 @@ const fotosPorProducto = {}
 let total = 0
 
 if (fs.existsSync(PUBLIC_CATALOGO)) {
+  // Primero se lee contenido/fotos.json: ahí está el orden que definió la
+  // usuaria en el panel y el precio de cada foto en particular.
+  const ordenElegido = leerJson(path.join(CONTENIDO, 'fotos.json'), {})
+
+  // Secciones que pertenecen a cada producto.
+  const seccionesPorProducto = {}
+  for (const [seccion, producto] of Object.entries(secciones)) {
+    ;(seccionesPorProducto[producto] ??= []).push(seccion)
+  }
+
+  // Todas las fotos que hay en el disco, por sección.
+  const archivosPorSeccion = {}
   for (const seccion of fs.readdirSync(PUBLIC_CATALOGO).sort()) {
     const carpeta = path.join(PUBLIC_CATALOGO, seccion)
     if (!fs.statSync(carpeta).isDirectory()) continue
-    const producto = secciones[seccion]
-    if (!producto) {
+    if (!secciones[seccion]) {
       console.warn(`  (aviso) sección sin producto asignado: ${seccion}`)
       continue
     }
-
-    const archivos = fs
+    archivosPorSeccion[seccion] = fs
       .readdirSync(carpeta)
       .filter((a) => a.toLowerCase().endsWith('.webp'))
       .sort((a, b) => {
@@ -93,15 +104,50 @@ if (fs.existsSync(PUBLIC_CATALOGO)) {
         const nb = analizarNombre(b)
         return na.pagina - nb.pagina || na.orden - nb.orden
       })
+  }
 
-    for (const archivo of archivos) {
+  const agregar = (producto, seccion, archivo, precio) => {
+    ;(fotosPorProducto[producto] ??= []).push({
+      src: `/catalogo/${seccion}/${archivo}`,
+      precio,
+    })
+    total++
+  }
+
+  for (const producto of Object.keys(seccionesPorProducto).sort()) {
+    const seccionesProducto = seccionesPorProducto[producto]
+    const elegida = Array.isArray(ordenElegido[producto])
+      ? ordenElegido[producto]
+      : []
+
+    // 1. Las fotos en el orden que pidió la usuaria.
+    const vistas = new Set()
+    for (const item of elegida) {
+      const seccion = String(item?.seccion ?? '')
+      const archivo = String(item?.foto ?? '')
+      if (!seccion || !archivo) continue
+      if (!archivosPorSeccion[seccion]?.includes(archivo)) continue
       const base = archivo.replace(/\.webp$/i, '')
       const { pagina } = analizarNombre(archivo)
-      ;(fotosPorProducto[producto] ??= []).push({
-        src: `/catalogo/${seccion}/${archivo}`,
-        precio: precioDe(seccion, producto, pagina, base),
-      })
-      total++
+      const precio =
+        String(item?.precio ?? '') || precioDe(seccion, producto, pagina, base)
+      agregar(producto, seccion, archivo, precio)
+      vistas.add(`${seccion}/${archivo}`)
+    }
+
+    // 2. Las fotos que se hayan subido después y todavía no están en la lista.
+    for (const seccion of seccionesProducto) {
+      for (const archivo of archivosPorSeccion[seccion] ?? []) {
+        if (vistas.has(`${seccion}/${archivo}`)) continue
+        const base = archivo.replace(/\.webp$/i, '')
+        const { pagina } = analizarNombre(archivo)
+        agregar(
+          producto,
+          seccion,
+          archivo,
+          precioDe(seccion, producto, pagina, base),
+        )
+      }
     }
   }
 }

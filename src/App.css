@@ -14,6 +14,7 @@
   /* Fondo amarillo vainilla muy claro + tipografías dulces */
   --fondo-crema: #fdf6e3;
   --fuente-marca: 'Poppins', 'Nunito', 'Segoe UI', sans-serif;
+  --fuente-lettering: 'Pacifico', 'Segoe Script', cursive;
   --fuente-menu: 'Quicksand', 'Nunito', 'Segoe UI', sans-serif;
   --fuente-texto: 'Nunito', 'Segoe UI', Arial, sans-serif;
 }
@@ -51,18 +52,12 @@ a {
 
 .logo {
   color: #9b72a8;
-  font-family: var(--fuente-marca);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-}
-
-.logo span {
-  display: block;
-  font-size: 10px;
-  color: #83aaa5;
-  letter-spacing: 1px;
-  margin-top: 4px;
+  font-family: var(--fuente-lettering);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 nav {
@@ -324,8 +319,9 @@ h3 {
 }
 
 .nosotros h3 {
-  font-family: Georgia, serif;
+  font-family: var(--fuente-lettering);
   font-size: 30px;
+  font-weight: 400;
 }
 
 .nosotros p {
@@ -392,9 +388,10 @@ footer {
 }
 
 footer strong {
-  font-family: var(--fuente-marca);
-  font-weight: 700;
-  letter-spacing: 1.5px;
+  font-family: var(--fuente-lettering);
+  font-weight: 400;
+  font-size: 26px;
+  letter-spacing: 0.5px;
 }
 
 footer p {

@@ -27,7 +27,6 @@ import { enlacesContacto } from './data/contacto'
 import { Carrito } from './components/carrito/Carrito'
 
 const NOMBRE_MARCA = 'PETITE PRINCESSE'
-const ESLOGAN = 'Chocolates y galletas artesanales'
 const CLAVE_CARRITO = 'petite-carrito'
 
 function cargarCarrito(): ItemCarrito[] {
@@ -99,7 +98,6 @@ function App() {
 
       <Encabezado
         nombreMarca={NOMBRE_MARCA}
-        eslogan={ESLOGAN}
         enlaces={enlacesNavegacion}
         accion={{ etiqueta: 'Hacer mi pedido', href: '#contacto' }}
       />

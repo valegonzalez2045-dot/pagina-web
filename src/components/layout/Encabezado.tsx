@@ -3,23 +3,18 @@ import type { AccionEnlace, EnlaceNavegacion } from '../../types'
 
 interface EncabezadoProps {
   nombreMarca: string
-  eslogan: string
   enlaces: EnlaceNavegacion[]
   accion: AccionEnlace
 }
 
 export function Encabezado({
   nombreMarca,
-  eslogan,
   enlaces,
   accion,
 }: EncabezadoProps) {
   return (
     <header className="encabezado">
-      <div className="logo">
-        {nombreMarca}
-        <span>{eslogan}</span>
-      </div>
+      <div className="logo">{nombreMarca}</div>
 
       <nav>
         {enlaces.map((enlace) => (

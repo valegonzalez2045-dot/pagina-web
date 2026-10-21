@@ -599,6 +599,36 @@ textarea.admin-entrada {
   background: #f7edf6;
 }
 
+/* Banco de fotos del catálogo (pestaña Galería) */
+
+.admin-foto-banco {
+  cursor: pointer;
+  padding: 0;
+  border: 1px solid #eaddea;
+  background: white;
+  font-family: inherit;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.admin-foto-banco:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(120, 80, 130, 0.18);
+}
+
+.admin-foto-banco:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.admin-foto-banco-texto {
+  display: block;
+  padding: 7px 8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6b4a76;
+  text-align: center;
+}
+
 /* Vista previa de la portada de un producto */
 .admin-portada {
   display: flex;

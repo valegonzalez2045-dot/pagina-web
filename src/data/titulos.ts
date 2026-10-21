@@ -31,7 +31,7 @@ export const titulos: Record<string, TituloSeccion> = {
   },
   "galeria": {
     "subtitulo": "MIRA Y ANTOJATE",
-    "titulo": "Galería de antojos 📸"
+    "titulo": "Lo más vendido"
   },
   "contacto": {
     "subtitulo": "¿YA TE ANTOJASTE?",

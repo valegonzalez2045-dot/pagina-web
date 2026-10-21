@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ConfigGitHub } from './github'
 import {
   borrarArchivo,
@@ -9,6 +9,7 @@ import {
   urlCruda,
 } from './github'
 import { comprimirImagen } from './compresor'
+import { desglosarNombre, PRODUCTOS_LABEL } from './constantes'
 
 interface FotoGaleriaEditor {
   /** Ruta de la foto dentro de public/ (ej: "/productos/chocomellowit.webp"). */
@@ -31,12 +32,25 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [fotos, setFotos] = useState<FotoGaleriaEditor[]>([])
+  /** Secciones del catálogo agrupadas por producto (para tomar fotos de ahí). */
+  const [secciones, setSecciones] = useState<Record<string, string>>({})
+  const [productoElegido, setProductoElegido] = useState('')
+  const [catalogo, setCatalogo] = useState<{ src: string; etiqueta: string }[]>([])
+  const [cargandoCatalogo, setCargandoCatalogo] = useState(false)
 
   const cargar = async () => {
     setCargando(true)
     setError('')
     try {
-      const archivo = await leerTexto(cfg, 'contenido/galeria.json')
+      const [archivo, archivoSecciones] = await Promise.all([
+        leerTexto(cfg, 'contenido/galeria.json'),
+        leerTexto(cfg, 'contenido/secciones.json'),
+      ])
+      setSecciones(
+        archivoSecciones
+          ? (JSON.parse(archivoSecciones.texto) as Record<string, string>)
+          : {},
+      )
       if (!archivo) {
         setFotos([])
         return
@@ -58,6 +72,48 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
   useEffect(() => {
     void cargar()
   }, [cfg])
+
+  /** Productos del catálogo, en el orden en que salen en la web. */
+  const productos = useMemo(
+    () => [...new Set(Object.values(secciones))],
+    [secciones],
+  )
+
+  /** Al elegir un producto se cargan todas sus fotos para poder agregarlas. */
+  const cargarCatalogo = async (producto: string) => {
+    setProductoElegido(producto)
+    setCatalogo([])
+    if (!producto) return
+    setCargandoCatalogo(true)
+    try {
+      const seccionesProducto = Object.entries(secciones)
+        .filter(([, p]) => p === producto)
+        .map(([s]) => s)
+      const lista: { src: string; etiqueta: string }[] = []
+      for (const seccion of seccionesProducto) {
+        const archivos = await listarCarpeta(cfg, `public/catalogo/${seccion}`)
+        const nombres = archivos
+          .filter((a) => a.type === 'file' && a.name.toLowerCase().endsWith('.webp'))
+          .map((a) => a.name)
+          .sort((a, b) => {
+            const na = desglosarNombre(a)
+            const nb = desglosarNombre(b)
+            return na.pagina - nb.pagina || na.orden - nb.orden
+          })
+        for (const nombre of nombres) {
+          lista.push({
+            src: `/catalogo/${seccion}/${nombre}`,
+            etiqueta: PRODUCTOS_LABEL[producto] ?? producto,
+          })
+        }
+      }
+      setCatalogo(lista)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudieron cargar las fotos.')
+    } finally {
+      setCargandoCatalogo(false)
+    }
+  }
 
   const persistir = async (lista: FotoGaleriaEditor[], aviso: string) => {
     await guardarTexto(
@@ -144,6 +200,46 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
     }
   }
 
+  /** Agrega una foto del catálogo a la sección (no borra el archivo original). */
+  const agregarDelCatalogo = async (foto: { src: string; etiqueta: string }) => {
+    if (fotos.some((f) => f.src === foto.src)) {
+      setMensaje('Esa foto ya está en la sección 🙂')
+      return
+    }
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const nueva = [...fotos, { src: foto.src, etiqueta: foto.etiqueta }]
+      setFotos(nueva)
+      await persistir(nueva, 'Foto agregada ✅ Ahora le puedes escribir el nombre')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo agregar la foto.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  /** Sube o baja una foto de la lista. */
+  const mover = async (indice: number, direccion: -1 | 1) => {
+    const destino = indice + direccion
+    if (destino < 0 || destino >= fotos.length) return
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const nueva = [...fotos]
+      const [foto] = nueva.splice(indice, 1)
+      nueva.splice(destino, 0, foto)
+      setFotos(nueva)
+      await persistir(nueva, 'Orden actualizado ✅')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo cambiar el orden.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   const vista = (src: string) =>
     src.startsWith('http') ? src : `${urlCruda(cfg, `public${src}`)}?t=${Date.now()}`
 
@@ -162,9 +258,11 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        Estas son las fotos que salen en la sección «Galería» de la página. Sube las que
-        quieras, escríbeles un nombre debajo y quita las que no te gusten. El título de
-        la sección lo cambias en la pestaña «Títulos».
+        Estas son las fotos que salen en la sección «Lo más vendido» de la
+        página. Sube las que quieras o tómalas del catálogo, escríbeles un
+        nombre debajo (qué es cada una) y quita las que no te gusten — así
+        cambias la cantidad de fotos cuando quieras. El título de la sección lo
+        cambias en la pestaña «Títulos».
       </p>
 
       <div className="admin-rejilla-fotos">
@@ -174,10 +272,28 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
             <input
               className="admin-entrada admin-entrada-chica"
               value={foto.etiqueta}
-              placeholder="Nombre de la foto (ej: Chocomellows)"
+              placeholder="Qué es esta foto (ej: Chocomellows)"
               onChange={(e) => cambiar(indice, { etiqueta: e.target.value })}
             />
             <div className="admin-foto-acciones">
+              <button
+                type="button"
+                className="admin-boton admin-boton-chico"
+                disabled={guardando || indice === 0}
+                onClick={() => void mover(indice, -1)}
+                aria-label="Subir la foto"
+              >
+                ↑
+              </button>
+              <button
+                type="button"
+                className="admin-boton admin-boton-chico"
+                disabled={guardando || indice === fotos.length - 1}
+                onClick={() => void mover(indice, 1)}
+                aria-label="Bajar la foto"
+              >
+                ↓
+              </button>
               <button
                 type="button"
                 className="admin-boton admin-boton-rojo admin-boton-chico"
@@ -205,6 +321,58 @@ export function PanelGaleria({ cfg }: { cfg: ConfigGitHub }) {
           />
         </label>
       </div>
+
+      <section className="admin-bloque">
+        <div className="admin-bloque-cabecera">
+          <h3>Tomar fotos del catálogo</h3>
+        </div>
+        <p className="admin-aviso">
+          Elige un producto y toca la foto que quieras agregar a «Lo más
+          vendido». Después le escribes su nombre para que sepa qué es.
+        </p>
+
+        <label className="admin-campo">
+          Producto
+          <select
+            className="admin-entrada"
+            value={productoElegido}
+            onChange={(e) => void cargarCatalogo(e.target.value)}
+          >
+            <option value="">— elige un producto —</option>
+            {productos.map((producto) => (
+              <option key={producto} value={producto}>
+                {PRODUCTOS_LABEL[producto] ?? producto}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        {cargandoCatalogo && <p className="admin-estado">Cargando fotos…</p>}
+
+        {productoElegido && !cargandoCatalogo && catalogo.length === 0 && (
+          <p className="admin-estado">Ese producto no tiene fotos todavía.</p>
+        )}
+
+        {catalogo.length > 0 && (
+          <div className="admin-rejilla-fotos">
+            {catalogo.map((foto) => (
+              <button
+                type="button"
+                className="admin-foto admin-foto-banco"
+                key={foto.src}
+                disabled={guardando}
+                onClick={() => void agregarDelCatalogo(foto)}
+                title="Agregar a la sección"
+              >
+                <img src={vista(foto.src)} alt={foto.etiqueta} loading="lazy" />
+                <span className="admin-foto-banco-texto">
+                  {fotos.some((f) => f.src === foto.src) ? '✓ Agregada' : '+ Agregar'}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+      </section>
 
       <div className="admin-panel-cabecera">
         <button type="button" className="admin-boton admin-boton-primario" onClick={guardar} disabled={guardando}>

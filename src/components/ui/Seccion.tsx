@@ -25,7 +25,7 @@ export function Seccion({
 }: SeccionProps) {
   return (
     <section id={id} className={clasesPorVariante[variante]}>
-      <p className="titulo-pequeno">{subtitulo}</p>
+      {subtitulo.trim() && <p className="titulo-pequeno">{subtitulo}</p>}
       <h2>{titulo}</h2>
       {children}
     </section>

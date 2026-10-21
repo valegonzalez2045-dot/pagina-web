@@ -14,8 +14,8 @@ export const titulos: Record<string, TituloSeccion> = {
     "titulo": "DULCERÍA ARTESANAL\nHECHA CON AMOR"
   },
   "productos": {
-    "subtitulo": "ELIGE TU ANTOJO",
-    "titulo": "Nuestros productos"
+    "subtitulo": "",
+    "titulo": "Elige tu antojo"
   },
   "combos": {
     "subtitulo": "REGALA DULZURA",

@@ -32,12 +32,12 @@ export function ModalProducto({
   const [agregado, setAgregado] = useState<string | null>(null)
   const temporizador = useRef<number | null>(null)
 
-  const agregarAlCarrito = (foto: FotoCatalogo, indice: number) => {
+  const agregarAlCarrito = (foto: FotoCatalogo) => {
     if (!onAgregar) return
     onAgregar({
       id: `${producto.id}::${foto.src}`,
       seccion: producto.nombre,
-      nombre: `${producto.nombre} · diseño ${indice + 1}`,
+      nombre: producto.nombre,
       src: foto.src,
       precio: precioANumero(foto.precio),
       precioTexto: foto.precio || '💬 Por confirmar',
@@ -160,7 +160,7 @@ export function ModalProducto({
                           <button
                             type="button"
                             className="catalogo-agregar"
-                            onClick={() => agregarAlCarrito(foto, i)}
+                            onClick={() => agregarAlCarrito(foto)}
                             aria-label={`Agregar ${producto.nombre} diseño ${i + 1} al carrito`}
                           >
                             {agregado === foto.src ? '✓ Agregado' : 'Agregar 🛒'}

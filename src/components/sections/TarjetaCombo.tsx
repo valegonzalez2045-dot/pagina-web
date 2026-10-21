@@ -49,7 +49,7 @@ export function TarjetaCombo({
           loading="lazy"
         />
       ) : (
-        <FotoPlaceholder etiqueta={`Foto ${combo.nombre}`} />
+        <FotoPlaceholder etiqueta={`Foto ${combo.nombre}`} emoji={combo.emoji} />
       )}
       <h3>{combo.nombre}</h3>
       <p className="combo-precio">{combo.precio || 'Precio por confirmar'}</p>

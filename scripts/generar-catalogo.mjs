@@ -174,6 +174,9 @@ export const catalogoInfo: Record<string, InfoCatalogo> = ${JSON.stringify(infoO
 
 const combosConfig = leerJson(path.join(CONTENIDO, 'combos.json'), { combos: [] })
 const listaCombos = Array.isArray(combosConfig.combos) ? combosConfig.combos : []
+const muestraCombos = Array.isArray(combosConfig.muestra)
+  ? combosConfig.muestra.map(String).filter(Boolean)
+  : []
 
 const combosNormalizados = listaCombos.map((combo, i) => {
   // `fotos` es la nueva lista; si viene el viejo `foto` suelto, se migra a lista.
@@ -183,6 +186,7 @@ const combosNormalizados = listaCombos.map((combo, i) => {
   return {
     id: String(combo?.id ?? `combo-${i + 1}`),
     nombre: String(combo?.nombre ?? `Combo ${i + 1}`),
+    emoji: String(combo?.emoji ?? '🎁'),
     descripcion: String(combo?.descripcion ?? ''),
     precio: String(combo?.precio ?? ''),
     fotos,
@@ -197,6 +201,8 @@ fs.writeFileSync(
 export interface ComboProducto {
   id: string
   nombre: string
+  /** Emoji que se muestra en la tarjeta mientras el combo no tiene fotos. */
+  emoji: string
   descripcion: string
   /** Precio a mostrar; vacío = por confirmar. */
   precio: string
@@ -205,10 +211,14 @@ export interface ComboProducto {
 }
 
 export const combos: ComboProducto[] = ${JSON.stringify(combosNormalizados, null, 2)}
+
+/** Fotos de combos que se muestran en la tira de arriba de la sección. */
+export const muestraCombos: string[] = ${JSON.stringify(muestraCombos, null, 2)}
 `,
 )
 
 console.log(`Combos generados: ${combosNormalizados.length}`)
+console.log(`Fotos de muestra de combos: ${muestraCombos.length}`)
 
 console.log(`Catálogo generado: ${total} fotos`)
 for (const producto of Object.keys(fotosPorProducto).sort()) {

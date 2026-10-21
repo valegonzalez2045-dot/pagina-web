@@ -13,6 +13,8 @@ import { comprimirImagen } from './compresor'
 interface ComboEditor {
   id: string
   nombre: string
+  /** Emoji que sale en la tarjeta mientras el combo no tiene fotos. */
+  emoji: string
   descripcion: string
   precio: string
   /** Rutas de las fotos (pueden ser varias por combo). */
@@ -25,6 +27,7 @@ function comboVacio(indice: number): ComboEditor {
   return {
     id: `combo-${indice + 1}`,
     nombre: `Combo ${indice + 1}`,
+    emoji: '🎁',
     descripcion: '',
     precio: '',
     fotos: [],
@@ -40,6 +43,7 @@ function normalizarCombo(c: Partial<ComboEditor & { foto?: string }>, indice: nu
   return {
     id: String(c.id ?? `combo-${indice + 1}`),
     nombre: String(c.nombre ?? `Combo ${indice + 1}`),
+    emoji: String(c.emoji ?? '🎁'),
     descripcion: String(c.descripcion ?? ''),
     precio: String(c.precio ?? ''),
     fotos,
@@ -52,6 +56,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [combos, setCombos] = useState<ComboEditor[]>([])
+  const [muestra, setMuestra] = useState<string[]>([])
 
   const cargar = async () => {
     setCargando(true)
@@ -65,8 +70,14 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       }
       const crudo = JSON.parse(archivo.texto) as {
         combos?: Array<Partial<ComboEditor & { foto?: string }>>
+        muestra?: string[]
       }
       setCombos((crudo.combos ?? []).map(normalizarCombo))
+      setMuestra(
+        Array.isArray(crudo.muestra)
+          ? crudo.muestra.map(String).filter(Boolean)
+          : [],
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los combos.')
     } finally {
@@ -84,7 +95,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     )
   }
 
-  const guardar = async (lista?: ComboEditor[]) => {
+  const guardar = async (lista?: ComboEditor[], fotosMuestra?: string[]) => {
     if (guardando) return
     setGuardando(true)
     setError('')
@@ -93,12 +104,76 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       await guardarTexto(
         cfg,
         'contenido/combos.json',
-        JSON.stringify({ combos: lista ?? combos }, null, 2),
+        JSON.stringify(
+          { muestra: fotosMuestra ?? muestra, combos: lista ?? combos },
+          null,
+          2,
+        ),
         'Actualizar combos desde el panel de Petite Princesse',
       )
       setMensaje('Combos guardados ✅ La web se actualiza sola en un par de minutos.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar los combos.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  /** Sube una foto para la tira de combos que sale arriba de la sección. */
+  const subirMuestra = async (archivo: File) => {
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const comprimida = await comprimirImagen(archivo)
+      const existentes = await listarCarpeta(cfg, 'public/combos')
+      const numeros = existentes
+        .map((a) => a.name.match(/^muestra-(\d+)\.webp$/)?.[1])
+        .filter(Boolean)
+        .map(Number)
+      const siguiente = (numeros.length ? Math.max(...numeros) : 0) + 1
+      const nombre = `muestra-${siguiente}.webp`
+      await subirArchivo(
+        cfg,
+        `public/combos/${nombre}`,
+        comprimida.base64,
+        'Subir foto de la tira de combos desde el panel de Petite Princesse',
+      )
+      const nuevaMuestra = [...muestra, `${PREFIJO_FOTO}${nombre}`]
+      setMuestra(nuevaMuestra)
+      await guardar(undefined, nuevaMuestra)
+      setMensaje('Foto de la tira de combos subida ✅')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo subir la foto.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  /** Quita una foto de la tira de combos (y la borra del repositorio). */
+  const quitarMuestra = async (src: string) => {
+    if (!window.confirm('¿Quitar esta foto de la tira de combos?')) return
+    setGuardando(true)
+    setError('')
+    setMensaje('')
+    try {
+      const nombre = src.replace(PREFIJO_FOTO, '')
+      const archivos = await listarCarpeta(cfg, 'public/combos')
+      const existente = archivos.find((a) => a.name === nombre)
+      if (existente) {
+        await borrarArchivo(
+          cfg,
+          `public/combos/${nombre}`,
+          existente.sha,
+          'Quitar foto de la tira de combos desde el panel de Petite Princesse',
+        )
+      }
+      const nuevaMuestra = muestra.filter((f) => f !== src)
+      setMuestra(nuevaMuestra)
+      await guardar(undefined, nuevaMuestra)
+      setMensaje('Foto quitada ✕')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo quitar la foto.')
     } finally {
       setGuardando(false)
     }
@@ -192,6 +267,49 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         <code>public/combos/</code>.
       </p>
 
+      <section className="admin-bloque">
+        <div className="admin-bloque-cabecera">
+          <h3>Tira de fotos de combos</h3>
+        </div>
+        <p className="admin-aviso">
+          Son las fotos que salen en la parte de arriba de la sección Combos
+          (se pueden ampliar al tocarlas).
+        </p>
+        <div className="admin-combo-fotos">
+          {muestra.map((src) => (
+            <div className="admin-combo-foto" key={src}>
+              <img
+                src={`${urlCruda(cfg, `public/combos/${src.replace(PREFIJO_FOTO, '')}`)}?t=${Date.now()}`}
+                alt="Foto de la tira de combos"
+                className="admin-combo-foto-img"
+              />
+              <button
+                type="button"
+                className="admin-boton admin-boton-rojo admin-boton-chico"
+                onClick={() => void quitarMuestra(src)}
+                disabled={guardando}
+              >
+                Quitar foto
+              </button>
+            </div>
+          ))}
+          <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
+            {guardando ? 'Subiendo…' : 'Subir foto'}
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              disabled={guardando}
+              onChange={(e) => {
+                const archivo = e.target.files?.[0]
+                e.target.value = ''
+                if (archivo) void subirMuestra(archivo)
+              }}
+            />
+          </label>
+        </div>
+      </section>
+
       <div className="admin-lista">
         {combos.map((combo, indice) => (
           <section className="admin-bloque" key={combo.id}>
@@ -215,6 +333,16 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
                   value={combo.nombre}
                   placeholder="Ej: Combo San Valentín"
                   onChange={(e) => cambiar(combo.id, { nombre: e.target.value })}
+                />
+              </label>
+              <label className="admin-campo admin-en-linea">
+                Emoji
+                <input
+                  className="admin-entrada admin-entrada-emoji"
+                  value={combo.emoji}
+                  placeholder="🎁"
+                  maxLength={4}
+                  onChange={(e) => cambiar(combo.id, { emoji: e.target.value })}
                 />
               </label>
               <label className="admin-campo admin-en-linea">

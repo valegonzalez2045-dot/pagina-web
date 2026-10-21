@@ -265,6 +265,12 @@ textarea.admin-entrada {
   margin-top: 0;
 }
 
+.admin-entrada-emoji {
+  max-width: 80px;
+  text-align: center;
+  font-size: 20px;
+}
+
 .admin-casilla {
   display: flex;
   align-items: center;

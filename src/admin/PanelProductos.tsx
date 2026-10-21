@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react'
 import type { ConfigGitHub } from './github'
-import { guardarTexto, leerTexto, subirArchivo, urlCruda } from './github'
+import {
+  borrarArchivo,
+  guardarTexto,
+  leerTexto,
+  listarCarpeta,
+  subirArchivo,
+  urlCruda,
+} from './github'
 import { comprimirImagen } from './compresor'
 import { PRODUCTOS_LABEL } from './constantes'
 
@@ -24,7 +31,25 @@ interface Portada {
   version: string
 }
 
-type Portadas = Record<string, Portada>
+/** Todo lo editable de una categoría de producto. */
+interface ProductoEditor {
+  nombre: string
+  descripcion: string
+  fotos: string[]
+  portada?: Portada
+}
+
+type ProductosEditor = Record<string, ProductoEditor>
+
+const CARPETA_FOTOS = 'public/productos'
+
+/** Solo se borran del repositorio las fotos subidas desde el panel. */
+function esFotoDelPanel(id: string, src: string): boolean {
+  if (!src.startsWith('/productos/')) return false
+  const nombre = src.slice('/productos/'.length)
+  const escapado = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^${escapado}-(\\d+|portada)\\.webp$`).test(nombre)
+}
 
 export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   const [cargando, setCargando] = useState(true)
@@ -32,8 +57,10 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [info, setInfo] = useState<InfoGlobal>({})
-  const [portadas, setPortadas] = useState<Portadas>({})
-  const [subiendo, setSubiendo] = useState('')
+  const [productos, setProductos] = useState<ProductosEditor>({})
+  const [sucioInfo, setSucioInfo] = useState(false)
+  const [sucioProductos, setSucioProductos] = useState(false)
+  const [ocupado, setOcupado] = useState('')
 
   const cargar = async () => {
     setCargando(true)
@@ -43,9 +70,31 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
       if (archivo) {
         setInfo(JSON.parse(archivo.texto) as InfoGlobal)
       }
-      const archivoPortadas = await leerTexto(cfg, 'contenido/productos.json')
-      if (archivoPortadas) {
-        setPortadas(JSON.parse(archivoPortadas.texto) as Portadas)
+      const archivoProductos = await leerTexto(cfg, 'contenido/productos.json')
+      if (archivoProductos) {
+        const crudo = JSON.parse(archivoProductos.texto) as Record<
+          string,
+          Partial<ProductoEditor>
+        >
+        const lista: ProductosEditor = {}
+        for (const [id, cfgProducto] of Object.entries(crudo)) {
+          lista[id] = {
+            nombre: String(cfgProducto?.nombre ?? id),
+            descripcion: String(cfgProducto?.descripcion ?? ''),
+            fotos: Array.isArray(cfgProducto?.fotos)
+              ? cfgProducto.fotos.map(String).filter(Boolean)
+              : [],
+            ...(cfgProducto?.portada?.archivo
+              ? {
+                  portada: {
+                    archivo: String(cfgProducto.portada.archivo),
+                    version: String(cfgProducto.portada.version ?? '1'),
+                  },
+                }
+              : {}),
+          }
+        }
+        setProductos(lista)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los productos.')
@@ -58,19 +107,47 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
     void cargar()
   }, [cfg])
 
+  /* ---------- info.json (mensajes, precios y listas) ---------- */
+
+  const persistirInfo = async () => {
+    await guardarTexto(
+      cfg,
+      'contenido/info.json',
+      JSON.stringify(info, null, 2),
+      'Actualizar productos y sabores desde el panel de Petite Princesse',
+    )
+  }
+
+  /* ---------- productos.json (nombre, texto, fotos y portada) ---------- */
+
+  const persistirProductos = async (lista: ProductosEditor) => {
+    await guardarTexto(
+      cfg,
+      'contenido/productos.json',
+      `${JSON.stringify(lista, null, 2)}\n`,
+      'Actualizar los productos desde el panel de Petite Princesse',
+    )
+  }
+
   const guardar = async () => {
     if (guardando) return
+    if (!sucioInfo && !sucioProductos) {
+      setMensaje('No hay cambios pendientes por guardar.')
+      return
+    }
     setGuardando(true)
     setError('')
     setMensaje('')
     try {
-      await guardarTexto(
-        cfg,
-        'contenido/info.json',
-        JSON.stringify(info, null, 2),
-        'Actualizar productos y sabores desde el panel de Petite Princesse',
-      )
-      setMensaje('Productos guardados ✅ La web se actualiza sola en un par de minutos.')
+      if (sucioInfo) {
+        await persistirInfo()
+        setSucioInfo(false)
+      }
+      if (sucioProductos) {
+        await persistirProductos(productos)
+        setSucioProductos(false)
+      }
+      setMensaje('Cambios guardados ✅ La web se actualiza sola en un par de minutos.')
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo guardar los productos.')
     } finally {
@@ -79,6 +156,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   const actualizar = (clave: string, parcial: Partial<InfoProducto>) => {
+    setSucioInfo(true)
     setInfo((prev) => ({ ...prev, [clave]: { ...prev[clave], ...parcial } }))
   }
 
@@ -88,6 +166,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
       .split('\n')
       .map((x) => x.trim())
       .filter(Boolean)
+    setSucioInfo(true)
     setInfo((prev) => {
       const producto = prev[clave] ?? {}
       const actualizado: InfoProducto = { ...producto, notas }
@@ -98,6 +177,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   const cambiarLista = (clave: string, indice: number, parcial: Partial<ListaEditor>) => {
+    setSucioInfo(true)
     setInfo((prev) => {
       const producto = prev[clave] ?? {}
       const listas = [...(producto.listas ?? [])]
@@ -107,6 +187,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   const agregarLista = (clave: string) => {
+    setSucioInfo(true)
     setInfo((prev) => {
       const producto = prev[clave] ?? {}
       const listas = [...(producto.listas ?? []), { titulo: '', opciones: [] }]
@@ -115,6 +196,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   const quitarLista = (clave: string, indice: number) => {
+    setSucioInfo(true)
     setInfo((prev) => {
       const producto = prev[clave] ?? {}
       const listas = (producto.listas ?? []).filter((_, i) => i !== indice)
@@ -123,6 +205,7 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   const eliminarProducto = (clave: string) => {
+    setSucioInfo(true)
     const copia = { ...info }
     delete copia[clave]
     setInfo(copia)
@@ -130,63 +213,161 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
 
   const agregarProducto = (clave: string) => {
     if (!clave.trim() || clave in info) return
+    setSucioInfo(true)
     setInfo((prev) => ({ ...prev, [clave.trim()]: { mostrarPrecios: true } }))
   }
 
-  /** Sube (o reemplaza) la imagen de portada de una categoría de producto. */
+  /* ---------- productos: textos ---------- */
+
+  const cambiarProducto = (id: string, parcial: Partial<ProductoEditor>) => {
+    setSucioProductos(true)
+    setProductos((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        nombre: prev[id]?.nombre ?? PRODUCTOS_LABEL[id] ?? id,
+        descripcion: prev[id]?.descripcion ?? '',
+        fotos: prev[id]?.fotos ?? [],
+        ...parcial,
+      },
+    }))
+  }
+
+  /* ---------- productos: portada ---------- */
+
   const subirPortada = async (id: string, archivo: File) => {
-    setSubiendo(id)
+    setOcupado(id)
     setError('')
     setMensaje('')
     try {
       const { base64 } = await comprimirImagen(archivo, 1200, 0.85)
       await subirArchivo(
         cfg,
-        `public/productos/${id}-portada.webp`,
+        `${CARPETA_FOTOS}/${id}-portada.webp`,
         base64,
         `Cambiar la imagen de portada de ${id} desde el panel`,
       )
-      const copia: Portadas = {
-        ...portadas,
-        [id]: { archivo: `/productos/${id}-portada.webp`, version: String(Date.now()) },
+      const copia: ProductosEditor = {
+        ...productos,
+        [id]: {
+          ...(productos[id] ?? { nombre: id, descripcion: '', fotos: [] }),
+          portada: {
+            archivo: `/productos/${id}-portada.webp`,
+            version: String(Date.now()),
+          },
+        },
       }
-      setPortadas(copia)
-      await guardarTexto(
-        cfg,
-        'contenido/productos.json',
-        `${JSON.stringify(copia, null, 2)}\n`,
-        `Actualizar la imagen de portada de ${id}`,
-      )
+      setProductos(copia)
+      setSucioProductos(false)
+      await persistirProductos(copia)
       setMensaje(`Portada de ${PRODUCTOS_LABEL[id] ?? id} actualizada ✅`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo subir la portada.')
     } finally {
-      setSubiendo('')
+      setOcupado('')
     }
   }
 
-  /** Vuelve a mostrar la primera foto del producto como portada. */
+  /** Vuelve a mostrarse la primera foto del producto como portada. */
   const quitarPortada = async (id: string) => {
-    setSubiendo(id)
+    setOcupado(id)
     setError('')
     setMensaje('')
     try {
-      const copia = { ...portadas }
-      delete copia[id]
-      setPortadas(copia)
-      await guardarTexto(
-        cfg,
-        'contenido/productos.json',
-        `${JSON.stringify(copia, null, 2)}\n`,
-        `Quitar la imagen de portada de ${id}`,
-      )
+      const actual = productos[id]
+      if (!actual) return
+      const copia: ProductosEditor = { ...productos }
+      const siguiente: ProductoEditor = { ...actual }
+      delete siguiente.portada
+      copia[id] = siguiente
+      setProductos(copia)
+      setSucioProductos(false)
+      await persistirProductos(copia)
       setMensaje(`Portada de ${PRODUCTOS_LABEL[id] ?? id} quitada`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo quitar la portada.')
     } finally {
-      setSubiendo('')
+      setOcupado('')
     }
   }
+
+  /* ---------- productos: fotos ---------- */
+
+  const subirFoto = async (id: string, archivo: File) => {
+    setOcupado(id)
+    setError('')
+    setMensaje('')
+    try {
+      const { base64 } = await comprimirImagen(archivo, 1400, 0.85)
+      const nombre = `${id}-${Date.now()}.webp`
+      await subirArchivo(
+        cfg,
+        `${CARPETA_FOTOS}/${nombre}`,
+        base64,
+        `Subir foto de ${id} desde el panel de Petite Princesse`,
+      )
+      const actual = productos[id] ?? { nombre: id, descripcion: '', fotos: [] }
+      const copia: ProductosEditor = {
+        ...productos,
+        [id]: { ...actual, fotos: [...actual.fotos, `/productos/${nombre}`] },
+      }
+      setProductos(copia)
+      setSucioProductos(false)
+      await persistirProductos(copia)
+      setMensaje(`Foto de ${PRODUCTOS_LABEL[id] ?? id} subida ✅`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo subir la foto.')
+    } finally {
+      setOcupado('')
+    }
+  }
+
+  const quitarFoto = async (id: string, src: string) => {
+    if (!window.confirm('¿Quitar esta foto del producto?')) return
+    setOcupado(id)
+    setError('')
+    setMensaje('')
+    try {
+      if (esFotoDelPanel(id, src)) {
+        const nombre = src.slice('/productos/'.length)
+        const archivos = await listarCarpeta(cfg, CARPETA_FOTOS)
+        const existente = archivos.find((a) => a.name === nombre)
+        if (existente) {
+          await borrarArchivo(
+            cfg,
+            `${CARPETA_FOTOS}/${nombre}`,
+            existente.sha,
+            `Quitar foto de ${id} desde el panel de Petite Princesse`,
+          )
+        }
+      }
+      const actual = productos[id]
+      if (!actual) return
+      const copia: ProductosEditor = {
+        ...productos,
+        [id]: { ...actual, fotos: actual.fotos.filter((f) => f !== src) },
+      }
+      setProductos(copia)
+      setSucioProductos(false)
+      await persistirProductos(copia)
+      setMensaje(`Foto de ${PRODUCTOS_LABEL[id] ?? id} quitada ✕`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo quitar la foto.')
+    } finally {
+      setOcupado('')
+    }
+  }
+
+  const vista = (src: string) =>
+    src.startsWith('http') ? src : `${urlCruda(cfg, `public${src}`)}?t=${Date.now()}`
+
+  const ids = Array.from(
+    new Set([...Object.keys(productos), ...Object.keys(info)]),
+  ).sort((a, b) => {
+    const ia = Object.keys(PRODUCTOS_LABEL).indexOf(a)
+    const ib = Object.keys(PRODUCTOS_LABEL).indexOf(b)
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib)
+  })
 
   if (cargando) return <p className="admin-estado">Cargando productos…</p>
 
@@ -203,157 +384,202 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        Aquí editas el texto que se muestra al abrir cada producto (los mensajes de
-        arriba, si muestra precio por foto, y las listas de sabores o rellenos), y la
-        imagen de portada de cada categoría.
+        Aquí editas cada categoría de la página: su nombre, el texto que se abre al
+        tocarla, la imagen grande de su tarjeta, sus fotos y los mensajes de arriba (si
+        muestra precio por foto y las listas de sabores o rellenos).
       </p>
 
-      <section className="admin-bloque">
-        <h3>Imagen de portada de cada categoría</h3>
-        <p className="admin-ayuda">
-          Esta es la foto grande que sale en cada tarjeta de la sección «Nuestros
-          productos». Sube la imagen que quieras para esa categoría: se optimiza sola y
-          la página la muestra en un par de minutos.
-        </p>
+      {ids.map((id) => {
+        const producto = productos[id] ?? {
+          nombre: PRODUCTOS_LABEL[id] ?? id,
+          descripcion: '',
+          fotos: [],
+        }
+        const infoProducto = info[id] ?? {}
+        return (
+          <section className="admin-bloque" key={id}>
+            <div className="admin-bloque-cabecera">
+              <h3>{producto.nombre || PRODUCTOS_LABEL[id] || id}</h3>
+              <button
+                type="button"
+                className="admin-boton admin-boton-rojo admin-boton-chico"
+                onClick={() => eliminarProducto(id)}
+                title="Quitar los mensajes de este producto"
+              >
+                Quitar mensajes
+              </button>
+            </div>
 
-        <div className="admin-rejilla-fotos">
-          {Object.keys(PRODUCTOS_LABEL).map((id) => {
-            const portada = portadas[id]
-            const vista = portada
-              ? `${urlCruda(cfg, `public${portada.archivo}`)}?v=${portada.version}`
-              : ''
-            return (
-              <div className="admin-foto" key={id}>
-                {vista ? (
-                  <img src={vista} alt={PRODUCTOS_LABEL[id] ?? id} loading="lazy" />
-                ) : (
-                  <div className="admin-foto-sin-imagen">Sin portada</div>
-                )}
-                <p className="admin-foto-nombre">{PRODUCTOS_LABEL[id] ?? id}</p>
-                <p className="admin-foto-pagina">
-                  {portada ? 'Portada personalizada ✅' : 'Usa la primera foto del producto'}
-                </p>
-                <div className="admin-foto-acciones">
-                  <label
-                    className="admin-boton admin-boton-chico"
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') e.currentTarget.querySelector('input')?.click()
+            <div className="admin-portada">
+              {producto.portada ? (
+                <img src={`${urlCruda(cfg, `public${producto.portada.archivo}`)}?v=${producto.portada.version}`} alt="Portada" />
+              ) : (
+                <div className="admin-foto-sin-imagen">Sin portada</div>
+              )}
+              <div className="admin-foto-acciones">
+                <label
+                  className="admin-boton admin-boton-chico"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ')
+                      e.currentTarget.querySelector('input')?.click()
+                  }}
+                >
+                  {ocupado === id ? 'Subiendo…' : 'Cambiar portada'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={ocupado === id}
+                    onChange={(e) => {
+                      const archivo = e.target.files?.[0]
+                      e.target.value = ''
+                      if (archivo) void subirPortada(id, archivo)
                     }}
+                  />
+                </label>
+                {producto.portada && (
+                  <button
+                    type="button"
+                    className="admin-boton admin-boton-rojo admin-boton-chico"
+                    disabled={ocupado === id}
+                    onClick={() => void quitarPortada(id)}
                   >
-                    {subiendo === id ? 'Subiendo…' : 'Cambiar'}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      hidden
-                      disabled={subiendo === id}
-                      onChange={(e) => {
-                        const archivo = e.target.files?.[0]
-                        e.target.value = ''
-                        if (archivo) void subirPortada(id, archivo)
-                      }}
-                    />
-                  </label>
-                  {portada && (
+                    Quitar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <label className="admin-campo">
+              Nombre del producto
+              <input
+                className="admin-entrada"
+                value={producto.nombre}
+                placeholder={PRODUCTOS_LABEL[id] ?? id}
+                onChange={(e) => cambiarProducto(id, { nombre: e.target.value })}
+              />
+            </label>
+
+            <label className="admin-campo">
+              Descripción (el texto largo que se abre al tocar el producto)
+              <textarea
+                className="admin-entrada"
+                rows={4}
+                value={producto.descripcion}
+                placeholder="Ej: Galleta y chocolate en perfecta armonía…"
+                onChange={(e) => cambiarProducto(id, { descripcion: e.target.value })}
+              />
+            </label>
+
+            <div className="admin-sublista">
+              <h4>Fotos del producto (se ven al abrirlo)</h4>
+              <div className="admin-combo-fotos">
+                {producto.fotos.map((src) => (
+                  <div className="admin-combo-foto" key={src}>
+                    <img src={vista(src)} alt={producto.nombre} className="admin-combo-foto-img" />
                     <button
                       type="button"
                       className="admin-boton admin-boton-rojo admin-boton-chico"
-                      disabled={subiendo === id}
-                      onClick={() => void quitarPortada(id)}
+                      disabled={ocupado === id}
+                      onClick={() => void quitarFoto(id, src)}
                     >
                       Quitar
                     </button>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </section>
-
-      {Object.entries(info).map(([clave, producto]) => (
-        <section className="admin-bloque" key={clave}>
-          <div className="admin-bloque-cabecera">
-            <h3>{PRODUCTOS_LABEL[clave] ?? clave}</h3>
-            <button
-              type="button"
-              className="admin-boton admin-boton-rojo admin-boton-chico"
-              onClick={() => eliminarProducto(clave)}
-              title="Quitar este producto"
-            >
-              Quitar
-            </button>
-          </div>
-
-          <label className="admin-campo">
-            Mensajes (uno por línea, aparecen arriba en la ventana del producto)
-            <textarea
-              className="admin-entrada"
-              rows={3}
-              value={
-                (producto.notas ?? (producto.nota ? [producto.nota] : [])).join('\n')
-              }
-              placeholder={`Ej: Cada pastel se cotiza según el diseño, sabor y tamaño 🎂
-Ej: Estos son algunos de los diseños que hemos hecho 💕`}
-              onChange={(e) => cambiarNotas(clave, e.target.value)}
-            />
-          </label>
-
-          <label className="admin-casilla">
-            <input
-              type="checkbox"
-              checked={producto.mostrarPrecios !== false}
-              onChange={(e) => actualizar(clave, { mostrarPrecios: e.target.checked })}
-            />
-            Mostrar un precio debajo de cada foto
-          </label>
-
-          <div className="admin-sublista">
-            <h4>Listas de opciones (sabores, rellenos…)</h4>
-            {producto.listas?.map((lista, i) => (
-              <div className="admin-lista" key={i}>
-                <label className="admin-campo">
-                  Título de la lista
+                  </div>
+                ))}
+                <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
+                  {ocupado === id ? 'Subiendo…' : '+ Subir foto'}
                   <input
-                    className="admin-entrada"
-                    value={lista.titulo}
-                    onChange={(e) => cambiarLista(clave, i, { titulo: e.target.value })}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    disabled={ocupado === id}
+                    onChange={(e) => {
+                      const archivo = e.target.files?.[0]
+                      e.target.value = ''
+                      if (archivo) void subirFoto(id, archivo)
+                    }}
                   />
                 </label>
-                <label className="admin-campo">
-                  Opciones (una por línea)
-                  <textarea
-                    className="admin-entrada"
-                    rows={6}
-                    value={lista.opciones.join('\n')}
-                    onChange={(e) =>
-                      cambiarLista(clave, i, {
-                        opciones: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
-                      })
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className="admin-boton admin-boton-rojo admin-boton-chico"
-                  onClick={() => quitarLista(clave, i)}
-                >
-                  Quitar lista
-                </button>
               </div>
-            ))}
-            <button type="button" className="admin-boton admin-boton-chico" onClick={() => agregarLista(clave)}>
-              + Agregar lista
-            </button>
-          </div>
-        </section>
-      ))}
+            </div>
+
+            <label className="admin-campo">
+              Mensajes (uno por línea, aparecen arriba en la ventana del producto)
+              <textarea
+                className="admin-entrada"
+                rows={3}
+                value={
+                  (infoProducto.notas ?? (infoProducto.nota ? [infoProducto.nota] : [])).join('\n')
+                }
+                placeholder={`Ej: Cada pastel se cotiza según el diseño, sabor y tamaño 🎂
+Ej: Estos son algunos de los diseños que hemos hecho 💕`}
+                onChange={(e) => cambiarNotas(id, e.target.value)}
+              />
+            </label>
+
+            <label className="admin-casilla">
+              <input
+                type="checkbox"
+                checked={infoProducto.mostrarPrecios !== false}
+                onChange={(e) => actualizar(id, { mostrarPrecios: e.target.checked })}
+              />
+              Mostrar un precio debajo de cada foto
+            </label>
+
+            <div className="admin-sublista">
+              <h4>Listas de opciones (sabores, rellenos…)</h4>
+              {infoProducto.listas?.map((lista, i) => (
+                <div className="admin-lista" key={i}>
+                  <label className="admin-campo">
+                    Título de la lista
+                    <input
+                      className="admin-entrada"
+                      value={lista.titulo}
+                      onChange={(e) => cambiarLista(id, i, { titulo: e.target.value })}
+                    />
+                  </label>
+                  <label className="admin-campo">
+                    Opciones (una por línea)
+                    <textarea
+                      className="admin-entrada"
+                      rows={6}
+                      value={lista.opciones.join('\n')}
+                      onChange={(e) =>
+                        cambiarLista(id, i, {
+                          opciones: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean),
+                        })
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    className="admin-boton admin-boton-rojo admin-boton-chico"
+                    onClick={() => quitarLista(id, i)}
+                  >
+                    Quitar lista
+                  </button>
+                </div>
+              ))}
+              <button type="button" className="admin-boton admin-boton-chico" onClick={() => agregarLista(id)}>
+                + Agregar lista
+              </button>
+            </div>
+          </section>
+        )
+      })}
 
       <section className="admin-bloque">
         <h3>Agregar edición para otro producto</h3>
         <div className="admin-fila">
-          <input className="admin-entrada admin-clave" list="admin-productos" placeholder="id del producto" id="nuevo-producto" />
+          <input
+            className="admin-entrada admin-clave"
+            list="admin-productos"
+            placeholder="id del producto"
+            id="nuevo-producto"
+          />
           <button
             type="button"
             className="admin-boton"

@@ -1,6 +1,7 @@
 import { Seccion } from '../ui/Seccion'
 import { BotonEnlace } from '../ui/BotonEnlace'
 import type { AccionEnlace } from '../../types'
+import { titulos } from '../../data/titulos'
 
 interface MayoreoProps {
   beneficios: string[]
@@ -8,11 +9,13 @@ interface MayoreoProps {
 }
 
 export function Mayoreo({ beneficios, accion }: MayoreoProps) {
+  const seccion = titulos.mayoreo
+
   return (
     <Seccion
       id="mayoreo"
-      subtitulo="PARA GRANDES ANTOS"
-      titulo="Mayoreo 📦"
+      subtitulo={seccion?.subtitulo ?? 'PARA GRANDES ANTOS'}
+      titulo={seccion?.titulo ?? 'Mayoreo 📦'}
     >
       <div className="mayoreo">
         <div>

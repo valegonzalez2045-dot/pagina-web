@@ -2,6 +2,7 @@ import { Seccion } from '../ui/Seccion'
 import { TarjetaCombo } from './TarjetaCombo'
 import type { ItemCarrito } from '../../types'
 import type { ComboProducto } from '../../data/combos'
+import { titulos } from '../../data/titulos'
 
 interface CombosProps {
   combos: ComboProducto[]
@@ -10,11 +11,13 @@ interface CombosProps {
 }
 
 export function Combos({ combos, onAgregar, onVerCombo }: CombosProps) {
+  const seccion = titulos.combos
+
   return (
     <Seccion
       id="combos"
-      subtitulo="REGALA DULZURA"
-      titulo="Combos para enamorar 🎁"
+      subtitulo={seccion?.subtitulo ?? 'REGALA DULZURA'}
+      titulo={seccion?.titulo ?? 'Combos para enamorar 🎁'}
       variante="color"
     >
       <p className="combos-intro">

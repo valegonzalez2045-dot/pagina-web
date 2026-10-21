@@ -8,11 +8,20 @@ import path from 'node:path'
  *   - contenido/precios.json             (los precios editables)
  *   - contenido/info.json                (notas, listas de sabores, etc.)
  *   - contenido/combos.json              (los combos editables)
+ *   - contenido/logo.json                (el logo de la portada)
+ *   - contenido/productos.json           (nombre, texto, fotos y portada de cada producto)
+ *   - contenido/titulos.json             (los títulos de cada sección)
+ *   - contenido/galeria.json             (las fotos de la galería)
  *
  * Escribe:
  *   - src/data/catalogo.ts
  *   - src/data/catalogoInfo.ts
  *   - src/data/combos.ts
+ *   - src/data/logo.ts
+ *   - src/data/portadas.ts
+ *   - src/data/productos.ts
+ *   - src/data/titulos.ts
+ *   - src/data/galeria.ts
  *
  * Este script NO usa sharp ni las imágenes originales: solo mira los nombres
  * de archivo (que incluyen la página: <seccion>-<pagina>-<n>.webp).
@@ -28,6 +37,9 @@ const SALIDA_INFO = path.join(RAIZ, 'src', 'data', 'catalogoInfo.ts')
 const SALIDA_COMBOS = path.join(RAIZ, 'src', 'data', 'combos.ts')
 const SALIDA_LOGO = path.join(RAIZ, 'src', 'data', 'logo.ts')
 const SALIDA_PORTADAS = path.join(RAIZ, 'src', 'data', 'portadas.ts')
+const SALIDA_PRODUCTOS = path.join(RAIZ, 'src', 'data', 'productos.ts')
+const SALIDA_TITULOS = path.join(RAIZ, 'src', 'data', 'titulos.ts')
+const SALIDA_GALERIA = path.join(RAIZ, 'src', 'data', 'galeria.ts')
 
 function leerJson(ruta, respaldo) {
   if (!fs.existsSync(ruta)) return respaldo
@@ -236,14 +248,25 @@ console.log(`Logo: ${logoActivo ? logoArchivo : 'oculto'}`)
 
 // --- Imágenes de portada de cada categoría de producto ---
 
-const portadasConfig = leerJson(path.join(CONTENIDO, 'productos.json'), {})
+const productosConfig = leerJson(path.join(CONTENIDO, 'productos.json'), {})
 const portadas = {}
-if (portadasConfig && typeof portadasConfig === 'object' && !Array.isArray(portadasConfig)) {
-  for (const [clave, valor] of Object.entries(portadasConfig)) {
-    const archivo = String(valor?.archivo ?? '').trim()
-    if (!archivo) continue
-    const version = String(valor?.version ?? '1')
-    portadas[clave] = `${archivo}?v=${version}`
+const productosNormalizados = []
+
+if (productosConfig && typeof productosConfig === 'object' && !Array.isArray(productosConfig)) {
+  for (const [id, cfg] of Object.entries(productosConfig)) {
+    const fotos = Array.isArray(cfg?.fotos) ? cfg.fotos.map(String).filter(Boolean) : []
+    productosNormalizados.push({
+      id,
+      nombre: String(cfg?.nombre ?? id),
+      descripcion: String(cfg?.descripcion ?? ''),
+      fotos,
+    })
+
+    const archivo = String(cfg?.portada?.archivo ?? '').trim()
+    if (archivo) {
+      const version = String(cfg?.portada?.version ?? '1')
+      portadas[id] = `${archivo}?v=${version}`
+    }
   }
 }
 
@@ -257,4 +280,73 @@ export const portadas: Record<string, string> = ${JSON.stringify(portadas, null,
 `,
 )
 
+fs.writeFileSync(
+  SALIDA_PRODUCTOS,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/productos.json (o el panel de la web).
+
+import type { Producto } from '../types'
+
+export const productos: Producto[] = ${JSON.stringify(productosNormalizados, null, 2)}
+`,
+)
+
 console.log(`Portadas de productos: ${Object.keys(portadas).length}`)
+console.log(`Productos: ${productosNormalizados.length}`)
+
+// --- Títulos de las secciones ---
+
+const titulosConfig = leerJson(path.join(CONTENIDO, 'titulos.json'), {})
+const titulos = {}
+if (titulosConfig && typeof titulosConfig === 'object' && !Array.isArray(titulosConfig)) {
+  for (const [id, cfg] of Object.entries(titulosConfig)) {
+    titulos[id] = {
+      subtitulo: String(cfg?.subtitulo ?? ''),
+      titulo: String(cfg?.titulo ?? ''),
+    }
+  }
+}
+
+fs.writeFileSync(
+  SALIDA_TITULOS,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/titulos.json (o el panel de la web).
+
+export interface TituloSeccion {
+  /** Texto chiquito de arriba. */
+  subtitulo: string
+  /** Título grande de la sección. */
+  titulo: string
+}
+
+export const titulos: Record<string, TituloSeccion> = ${JSON.stringify(titulos, null, 2)}
+`,
+)
+
+console.log(`Títulos de secciones: ${Object.keys(titulos).length}`)
+
+// --- Galería de la página ---
+
+const galeriaConfig = leerJson(path.join(CONTENIDO, 'galeria.json'), { fotos: [] })
+const fotosGaleria = Array.isArray(galeriaConfig.fotos) ? galeriaConfig.fotos : []
+
+const galeriaNormalizada = fotosGaleria
+  .map((foto, i) => ({
+    id: `galeria-${i + 1}`,
+    etiqueta: String(foto?.etiqueta ?? 'Petite Princesse'),
+    src: String(foto?.src ?? '').trim(),
+  }))
+  .filter((foto) => foto.src)
+
+fs.writeFileSync(
+  SALIDA_GALERIA,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/galeria.json (o el panel de la web).
+
+import type { FotoGaleria } from '../types'
+
+export const fotosGaleria: FotoGaleria[] = ${JSON.stringify(galeriaNormalizada, null, 2)}
+`,
+)
+
+console.log(`Fotos de la galería: ${galeriaNormalizada.length}`)

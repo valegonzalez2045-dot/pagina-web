@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Seccion } from '../ui/Seccion'
 import { Lightbox } from '../ui/Lightbox'
 import type { FotoGaleria } from '../../types'
+import { titulos } from '../../data/titulos'
 
 interface GaleriaProps {
   fotos: FotoGaleria[]
@@ -42,12 +43,13 @@ export function Galeria({ fotos, mensaje }: GaleriaProps) {
   }, [indice])
 
   const fotoActual = indice === null ? undefined : fotos[indice]
+  const seccion = titulos.galeria
 
   return (
     <Seccion
       id="galeria"
-      subtitulo="MIRA Y ANTOJATE"
-      titulo="Galería de antojos 📸"
+      subtitulo={seccion?.subtitulo ?? 'MIRA Y ANTOJATE'}
+      titulo={seccion?.titulo ?? 'Galería de antojos 📸'}
     >
       <div className="galeria">
         {fotos.map((foto, i) => (

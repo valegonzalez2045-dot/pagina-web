@@ -1,4 +1,5 @@
 import { Seccion } from '../ui/Seccion'
+import { titulos } from '../../data/titulos'
 
 interface NosotrosProps {
   nombreMarca: string
@@ -6,11 +7,13 @@ interface NosotrosProps {
 }
 
 export function Nosotros({ nombreMarca, parrafos }: NosotrosProps) {
+  const seccion = titulos.nosotros
+
   return (
     <Seccion
       id="nosotros"
-      subtitulo="HECHO A MANO, HECHO CON AMOR"
-      titulo="Detrás de cada antojo 🎀"
+      subtitulo={seccion?.subtitulo ?? 'HECHO A MANO, HECHO CON AMOR'}
+      titulo={seccion?.titulo ?? 'Detrás de cada antojo 🎀'}
       variante="color"
     >
       <div className="nosotros">

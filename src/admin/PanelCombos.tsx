@@ -84,7 +84,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     )
   }
 
-  const guardar = async () => {
+  const guardar = async (lista?: ComboEditor[]) => {
     if (guardando) return
     setGuardando(true)
     setError('')
@@ -93,7 +93,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       await guardarTexto(
         cfg,
         'contenido/combos.json',
-        JSON.stringify({ combos }, null, 2),
+        JSON.stringify({ combos: lista ?? combos }, null, 2),
         'Actualizar combos desde el panel de Petite Princesse',
       )
       setMensaje('Combos guardados ✅ La web se actualiza sola en un par de minutos.')
@@ -118,8 +118,11 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
         comprimida.base64,
         `Subir foto del combo ${combo.id} desde el panel de Petite Princesse`,
       )
-      cambiar(combo.id, { fotos: [...combo.fotos, `${PREFIJO_FOTO}${nombre}`] })
-      await guardar()
+      const nuevaLista = combos.map((c) =>
+        c.id === combo.id ? { ...c, fotos: [...c.fotos, `${PREFIJO_FOTO}${nombre}`] } : c,
+      )
+      setCombos(nuevaLista)
+      await guardar(nuevaLista)
       setMensaje(`Foto del combo "${combo.nombre}" subida ✅`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo subir la foto.')
@@ -145,8 +148,11 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
           `Quitar foto del combo ${combo.id} desde el panel de Petite Princesse`,
         )
       }
-      cambiar(combo.id, { fotos: combo.fotos.filter((f) => f !== src) })
-      await guardar()
+      const nuevaLista = combos.map((c) =>
+        c.id === combo.id ? { ...c, fotos: c.fotos.filter((f) => f !== src) } : c,
+      )
+      setCombos(nuevaLista)
+      await guardar(nuevaLista)
       setMensaje(`Foto del combo "${combo.nombre}" quitada ✕`)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo quitar la foto.')
@@ -171,7 +177,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
     <div className="admin-panel">
       <div className="admin-panel-cabecera">
         <h2>Combos</h2>
-        <button type="button" className="admin-boton admin-boton-primario" onClick={guardar} disabled={guardando}>
+        <button type="button" className="admin-boton admin-boton-primario" onClick={() => void guardar()} disabled={guardando}>
           {guardando ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>
@@ -278,7 +284,7 @@ export function PanelCombos({ cfg }: { cfg: ConfigGitHub }) {
       </button>
 
       <div className="admin-panel-cabecera">
-        <button type="button" className="admin-boton admin-boton-primario" onClick={guardar} disabled={guardando}>
+        <button type="button" className="admin-boton admin-boton-primario" onClick={() => void guardar()} disabled={guardando}>
           {guardando ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>

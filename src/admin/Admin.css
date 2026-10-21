@@ -473,3 +473,47 @@ textarea.admin-entrada {
   font-size: 13px;
   text-align: center;
 }
+
+/* Texto corto dentro de una foto (el nombre de la foto de la galería) */
+.admin-entrada-chica {
+  margin: 10px 10px 0;
+  width: auto;
+  font-size: 13px;
+  padding: 7px 10px;
+}
+
+/* Cuadro para subir una foto nueva */
+.admin-foto-subir {
+  align-items: center;
+  justify-content: center;
+  min-height: 150px;
+  border: 2px dashed #d8c4d8;
+  background: #fdf9f3;
+  color: #9b72a8;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.admin-foto-subir:hover {
+  background: #f7edf6;
+}
+
+/* Vista previa de la portada de un producto */
+.admin-portada {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.admin-portada img,
+.admin-portada .admin-foto-sin-imagen {
+  width: 120px;
+  height: 96px;
+  aspect-ratio: auto;
+  border-radius: 12px;
+  border: 1px solid #eaddea;
+  object-fit: cover;
+}

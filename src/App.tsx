@@ -23,6 +23,7 @@ import { combos } from './data/combos'
 import { logoMarca } from './data/logo'
 import { beneficiosMayoreo } from './data/mayoreo'
 import { fotosGaleria } from './data/galeria'
+import { titulos } from './data/titulos'
 import { enlacesContacto } from './data/contacto'
 import { Carrito } from './components/carrito/Carrito'
 
@@ -103,7 +104,7 @@ function App() {
       />
 
       <Inicio
-        lineasTitulo={['DULCERÍA ARTESANAL', 'HECHA CON AMOR']}
+        lineasTitulo={(titulos.inicio?.titulo || 'DULCERÍA ARTESANAL\nHECHA CON AMOR').split('\n')}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
         accion={{ etiqueta: 'Explorar', href: '#productos' }}
         logo={logoMarca.activo ? { src: logoMarca.src, alt: logoMarca.alt } : undefined}

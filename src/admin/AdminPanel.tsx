@@ -8,8 +8,10 @@ import { PanelProductos } from './PanelProductos'
 import { PanelFotos } from './PanelFotos'
 import { PanelCombos } from './PanelCombos'
 import { PanelLogo } from './PanelLogo'
+import { PanelGaleria } from './PanelGaleria'
+import { PanelTextos } from './PanelTextos'
 
-type Pestana = 'precios' | 'productos' | 'fotos' | 'combos' | 'logo'
+type Pestana = 'precios' | 'productos' | 'fotos' | 'combos' | 'galeria' | 'titulos' | 'logo'
 
 function FormularioConexion({ onConectado }: { onConectado: (cfg: ConfigGitHub) => void }) {
   const [owner, setOwner] = useState('')
@@ -162,6 +164,12 @@ export function AdminPanel() {
         <button type="button" className={pestana === 'fotos' ? 'activa' : ''} onClick={() => setPestana('fotos')}>
           Fotos
         </button>
+        <button type="button" className={pestana === 'galeria' ? 'activa' : ''} onClick={() => setPestana('galeria')}>
+          Galería
+        </button>
+        <button type="button" className={pestana === 'titulos' ? 'activa' : ''} onClick={() => setPestana('titulos')}>
+          Títulos
+        </button>
         <button type="button" className={pestana === 'combos' ? 'activa' : ''} onClick={() => setPestana('combos')}>
           Combos
         </button>
@@ -174,6 +182,8 @@ export function AdminPanel() {
         {pestana === 'precios' && <PanelPrecios cfg={cfg} />}
         {pestana === 'productos' && <PanelProductos cfg={cfg} />}
         {pestana === 'fotos' && <PanelFotos cfg={cfg} />}
+        {pestana === 'galeria' && <PanelGaleria cfg={cfg} />}
+        {pestana === 'titulos' && <PanelTextos cfg={cfg} />}
         {pestana === 'combos' && <PanelCombos cfg={cfg} />}
         {pestana === 'logo' && <PanelLogo cfg={cfg} />}
       </main>

@@ -28,7 +28,11 @@ export function ModalProducto({
     info?.notas ??
     (info?.nota ? [info.nota] : ([] as string[]))
   const { cuerpo } = separarDescripcion(producto.descripcion)
-  const [ampliada, setAmpliada] = useState<number | null>(null)
+  // Fotos propias de la categoría (las que no están en el catálogo con precio).
+  const fotosPropias = producto.fotos.filter((src) => !fotos.some((f) => f.src === src))
+  const [ampliada, setAmpliada] = useState<{ tipo: 'fotos' | 'catalogo'; indice: number } | null>(
+    null,
+  )
   const [agregado, setAgregado] = useState<string | null>(null)
   const temporizador = useRef<number | null>(null)
 
@@ -58,7 +62,6 @@ export function ModalProducto({
     window.addEventListener('keydown', manejarTecla)
     return () => window.removeEventListener('keydown', manejarTecla)
   }, [onCerrar, ampliada])
-
   // La página no se desplaza mientras el modal está abierto
   useEffect(() => {
     document.body.style.overflow = 'hidden'
@@ -67,7 +70,18 @@ export function ModalProducto({
     }
   }, [])
 
-  const fotoActual = ampliada === null ? undefined : fotos[ampliada]
+  const listaAmpliada: string[] =
+    ampliada?.tipo === 'fotos' ? fotosPropias : fotos.map((foto) => foto.src)
+  const srcAmpliada = ampliada ? listaAmpliada[ampliada.indice] : undefined
+
+  const moverFoto = (paso: number) => {
+    setAmpliada((actual) => {
+      if (!actual) return actual
+      const lista = actual.tipo === 'fotos' ? fotosPropias : fotos.map((f) => f.src)
+      if (lista.length === 0) return actual
+      return { ...actual, indice: (actual.indice + paso + lista.length) % lista.length }
+    })
+  }
 
   return (
     <>
@@ -133,6 +147,24 @@ export function ModalProducto({
               </div>
             )}
 
+            {fotosPropias.length > 0 && (
+              <div className="modal-fotos-producto">
+                {fotosPropias.map((src) => (
+                  <button
+                    key={src}
+                    type="button"
+                    className="modal-foto-producto"
+                    onClick={() =>
+                      setAmpliada({ tipo: 'fotos', indice: fotosPropias.indexOf(src) })
+                    }
+                    aria-label={`Ampliar foto de ${producto.nombre}`}
+                  >
+                    <img src={src} alt={`${producto.nombre}`} loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
+
             {fotos.length > 0 ? (
               <>
                 <ul className="catalogo-lista">
@@ -142,7 +174,7 @@ export function ModalProducto({
                         <button
                           type="button"
                           className="catalogo-foto"
-                          onClick={() => setAmpliada(i)}
+                          onClick={() => setAmpliada({ tipo: 'catalogo', indice: i })}
                           aria-label={`Ampliar diseño ${i + 1} de ${producto.nombre}`}
                         >
                           <img
@@ -194,17 +226,13 @@ export function ModalProducto({
         </div>
       </div>
 
-      {fotoActual && ampliada !== null && (
+      {srcAmpliada && ampliada !== null && (
         <Lightbox
-          foto={{ id: fotoActual.src, etiqueta: producto.nombre, src: fotoActual.src }}
-          posicion={`${ampliada + 1} de ${fotos.length}`}
+          foto={{ id: srcAmpliada, etiqueta: producto.nombre, src: srcAmpliada }}
+          posicion={`${ampliada.indice + 1} de ${listaAmpliada.length}`}
           onCerrar={() => setAmpliada(null)}
-          onAnterior={() =>
-            setAmpliada((i) => (i === null ? i : (i - 1 + fotos.length) % fotos.length))
-          }
-          onSiguiente={() =>
-            setAmpliada((i) => (i === null ? i : (i + 1) % fotos.length))
-          }
+          onAnterior={() => moverFoto(-1)}
+          onSiguiente={() => moverFoto(1)}
         />
       )}
     </>

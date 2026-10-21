@@ -1,0 +1,100 @@
+{
+  "fotos": [
+    {
+      "src": "/productos/chocomellowit.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocomellowvaca.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocomellowtortuga.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocomellowfuria.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocomellowbeetlejuice.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocomellowscariñositos.webp",
+      "etiqueta": "Chocomellows"
+    },
+    {
+      "src": "/productos/chocogalletaharry.webp",
+      "etiqueta": "Chocogalletas"
+    },
+    {
+      "src": "/productos/chocogalletaspiderman.webp",
+      "etiqueta": "Chocogalletas"
+    },
+    {
+      "src": "/productos/chocogalletaosoverde.webp",
+      "etiqueta": "Chocogalletas"
+    },
+    {
+      "src": "/productos/chocogalletahongo.webp",
+      "etiqueta": "Chocogalletas"
+    },
+    {
+      "src": "/productos/chocoreovaca.webp",
+      "etiqueta": "Chocoreo"
+    },
+    {
+      "src": "/productos/cookiefusion.webp",
+      "etiqueta": "Cookie Fusion"
+    },
+    {
+      "src": "/productos/artecookiechimuelo.webp",
+      "etiqueta": "Artecookies"
+    },
+    {
+      "src": "/productos/artecookiemonsterhigh.webp",
+      "etiqueta": "Artecookies"
+    },
+    {
+      "src": "/productos/artecookiekpop.webp",
+      "etiqueta": "Artecookies"
+    },
+    {
+      "src": "/productos/artecookiegary.webp",
+      "etiqueta": "Artecookies"
+    },
+    {
+      "src": "/productos/chocodeliciadalmata.webp",
+      "etiqueta": "Chocodelicias"
+    },
+    {
+      "src": "/productos/sweetcakecapibara.webp",
+      "etiqueta": "Sweetcakes"
+    },
+    {
+      "src": "/productos/sweetcakejuanpa.webp",
+      "etiqueta": "Sweetcakes"
+    },
+    {
+      "src": "/productos/sweetcakepolicia.webp",
+      "etiqueta": "Sweetcakes"
+    },
+    {
+      "src": "/catalogo/cookies/cookies-40-1.webp",
+      "etiqueta": "Cookies"
+    },
+    {
+      "src": "/catalogo/cookies/cookies-40-2.webp",
+      "etiqueta": "Cookies"
+    },
+    {
+      "src": "/catalogo/fresas-con-crema/fresas-con-crema-41-1.webp",
+      "etiqueta": "Fresas con crema"
+    },
+    {
+      "src": "/catalogo/fresas-con-crema/fresas-con-crema-41-2.webp",
+      "etiqueta": "Fresas con crema"
+    }
+  ]
+}

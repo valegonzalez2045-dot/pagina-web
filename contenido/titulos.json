@@ -1,0 +1,30 @@
+{
+  "inicio": {
+    "subtitulo": "",
+    "titulo": "DULCERÍA ARTESANAL\nHECHA CON AMOR"
+  },
+  "productos": {
+    "subtitulo": "ELIGE TU ANTOJO",
+    "titulo": "Nuestros productos"
+  },
+  "combos": {
+    "subtitulo": "REGALA DULZURA",
+    "titulo": "Combos para enamorar 🎁"
+  },
+  "mayoreo": {
+    "subtitulo": "PARA GRANDES ANTOS",
+    "titulo": "Mayoreo 📦"
+  },
+  "nosotros": {
+    "subtitulo": "HECHO A MANO, HECHO CON AMOR",
+    "titulo": "Detrás de cada antojo 🎀"
+  },
+  "galeria": {
+    "subtitulo": "MIRA Y ANTOJATE",
+    "titulo": "Galería de antojos 📸"
+  },
+  "contacto": {
+    "subtitulo": "¿YA TE ANTOJASTE?",
+    "titulo": "Haz tu pedido 💕"
+  }
+}

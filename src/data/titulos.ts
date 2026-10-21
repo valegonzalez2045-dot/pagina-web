@@ -22,7 +22,7 @@ export const titulos: Record<string, TituloSeccion> = {
     "titulo": "Combos para enamorar 🎁"
   },
   "mayoreo": {
-    "subtitulo": "PARA GRANDES ANTOS",
+    "subtitulo": "",
     "titulo": "Mayoreo 📦"
   },
   "nosotros": {

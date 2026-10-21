@@ -14,7 +14,7 @@ export function Mayoreo({ beneficios, accion }: MayoreoProps) {
   return (
     <Seccion
       id="mayoreo"
-      subtitulo={seccion?.subtitulo ?? 'PARA GRANDES ANTOS'}
+      subtitulo={seccion?.subtitulo ?? ''}
       titulo={seccion?.titulo ?? 'Mayoreo 📦'}
     >
       <div className="mayoreo">

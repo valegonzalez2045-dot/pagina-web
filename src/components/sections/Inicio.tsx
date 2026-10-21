@@ -3,7 +3,6 @@ import { BotonEnlace } from '../ui/BotonEnlace'
 import type { AccionEnlace } from '../../types'
 
 interface InicioProps {
-  etiqueta: string
   lineasTitulo: string[]
   descripcion: string
   accion: AccionEnlace
@@ -12,7 +11,6 @@ interface InicioProps {
 }
 
 export function Inicio({
-  etiqueta,
   lineasTitulo,
   descripcion,
   accion,
@@ -32,8 +30,6 @@ export function Inicio({
             onError={() => setLogoVisible(false)}
           />
         )}
-
-        <p className="pequeno">{etiqueta}</p>
 
         <h1>
           {lineasTitulo.map((linea, i) => (

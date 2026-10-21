@@ -105,8 +105,7 @@ function App() {
       />
 
       <Inicio
-        etiqueta="DULCERÍA ARTESANAL HECHA CON AMOR"
-        lineasTitulo={['Chocolate que se derrite', 'en la boca 🍫']}
+        lineasTitulo={['DULCERÍA ARTESANAL', 'HECHA CON AMOR']}
         descripcion="Galletas crujientes, chocolatinas irresistibles y dulces perfectos para regalar, celebrar o darte ese gusto que tanto mereces."
         accion={{ etiqueta: 'Explorar', href: '#productos' }}
         logo={logoMarca.activo ? { src: logoMarca.src, alt: logoMarca.alt } : undefined}

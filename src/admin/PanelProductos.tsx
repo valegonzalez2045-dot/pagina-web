@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { ConfigGitHub } from './github'
-import {
-  borrarArchivo,
-  guardarTexto,
-  leerTexto,
-  listarCarpeta,
-  subirArchivo,
-  urlCruda,
-} from './github'
+import { guardarTexto, leerTexto, subirArchivo, urlCruda } from './github'
 import { comprimirImagen } from './compresor'
 import { PRODUCTOS_LABEL } from './constantes'
 
@@ -42,14 +35,6 @@ interface ProductoEditor {
 type ProductosEditor = Record<string, ProductoEditor>
 
 const CARPETA_FOTOS = 'public/productos'
-
-/** Solo se borran del repositorio las fotos subidas desde el panel. */
-function esFotoDelPanel(id: string, src: string): boolean {
-  if (!src.startsWith('/productos/')) return false
-  const nombre = src.slice('/productos/'.length)
-  const escapado = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return new RegExp(`^${escapado}-(\\d+|portada)\\.webp$`).test(nombre)
-}
 
 export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   const [cargando, setCargando] = useState(true)
@@ -234,7 +219,6 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   }
 
   /* ---------- productos: portada ---------- */
-
   const subirPortada = async (id: string, archivo: File) => {
     setOcupado(id)
     setError('')
@@ -293,74 +277,6 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
 
   /* ---------- productos: fotos ---------- */
 
-  const subirFoto = async (id: string, archivo: File) => {
-    setOcupado(id)
-    setError('')
-    setMensaje('')
-    try {
-      const { base64 } = await comprimirImagen(archivo, 1400, 0.85)
-      const nombre = `${id}-${Date.now()}.webp`
-      await subirArchivo(
-        cfg,
-        `${CARPETA_FOTOS}/${nombre}`,
-        base64,
-        `Subir foto de ${id} desde el panel de Petite Princesse`,
-      )
-      const actual = productos[id] ?? { nombre: id, descripcion: '', fotos: [] }
-      const copia: ProductosEditor = {
-        ...productos,
-        [id]: { ...actual, fotos: [...actual.fotos, `/productos/${nombre}`] },
-      }
-      setProductos(copia)
-      setSucioProductos(false)
-      await persistirProductos(copia)
-      setMensaje(`Foto de ${PRODUCTOS_LABEL[id] ?? id} subida ✅`)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo subir la foto.')
-    } finally {
-      setOcupado('')
-    }
-  }
-
-  const quitarFoto = async (id: string, src: string) => {
-    if (!window.confirm('¿Quitar esta foto del producto?')) return
-    setOcupado(id)
-    setError('')
-    setMensaje('')
-    try {
-      if (esFotoDelPanel(id, src)) {
-        const nombre = src.slice('/productos/'.length)
-        const archivos = await listarCarpeta(cfg, CARPETA_FOTOS)
-        const existente = archivos.find((a) => a.name === nombre)
-        if (existente) {
-          await borrarArchivo(
-            cfg,
-            `${CARPETA_FOTOS}/${nombre}`,
-            existente.sha,
-            `Quitar foto de ${id} desde el panel de Petite Princesse`,
-          )
-        }
-      }
-      const actual = productos[id]
-      if (!actual) return
-      const copia: ProductosEditor = {
-        ...productos,
-        [id]: { ...actual, fotos: actual.fotos.filter((f) => f !== src) },
-      }
-      setProductos(copia)
-      setSucioProductos(false)
-      await persistirProductos(copia)
-      setMensaje(`Foto de ${PRODUCTOS_LABEL[id] ?? id} quitada ✕`)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo quitar la foto.')
-    } finally {
-      setOcupado('')
-    }
-  }
-
-  const vista = (src: string) =>
-    src.startsWith('http') ? src : `${urlCruda(cfg, `public${src}`)}?t=${Date.now()}`
-
   const ids = Array.from(
     new Set([...Object.keys(productos), ...Object.keys(info)]),
   ).sort((a, b) => {
@@ -385,8 +301,9 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
 
       <p className="admin-aviso">
         Aquí editas cada categoría de la página: su nombre, el texto que se abre al
-        tocarla, la imagen grande de su tarjeta, sus fotos y los mensajes de arriba (si
-        muestra precio por foto y las listas de sabores o rellenos).
+        tocarla, la imagen grande de su tarjeta y los mensajes de arriba (si muestra
+        precio por foto y las listas de sabores o rellenos). Las fotos de la sección
+        «Galería» se cambian en la pestaña «Galería».
       </p>
 
       {ids.map((id) => {
@@ -472,39 +389,6 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
                 onChange={(e) => cambiarProducto(id, { descripcion: e.target.value })}
               />
             </label>
-
-            <div className="admin-sublista">
-              <h4>Fotos del producto (se ven al abrirlo)</h4>
-              <div className="admin-combo-fotos">
-                {producto.fotos.map((src) => (
-                  <div className="admin-combo-foto" key={src}>
-                    <img src={vista(src)} alt={producto.nombre} className="admin-combo-foto-img" />
-                    <button
-                      type="button"
-                      className="admin-boton admin-boton-rojo admin-boton-chico"
-                      disabled={ocupado === id}
-                      onClick={() => void quitarFoto(id, src)}
-                    >
-                      Quitar
-                    </button>
-                  </div>
-                ))}
-                <label className="admin-boton admin-boton-chico" role="button" tabIndex={0}>
-                  {ocupado === id ? 'Subiendo…' : '+ Subir foto'}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    disabled={ocupado === id}
-                    onChange={(e) => {
-                      const archivo = e.target.files?.[0]
-                      e.target.value = ''
-                      if (archivo) void subirFoto(id, archivo)
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
 
             <label className="admin-campo">
               Mensajes (uno por línea, aparecen arriba en la ventana del producto)

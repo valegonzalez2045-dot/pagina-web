@@ -9,7 +9,7 @@ interface ProductosProps {
 
 export function Productos({ productos, onVerProducto }: ProductosProps) {
   return (
-    <Seccion id="productos" subtitulo="ELIGE TU ANTOJO" titulo="Lo más pedido 🍫">
+    <Seccion id="productos" subtitulo="ELIGE TU ANTOJO" titulo="Nuestros productos">
       <div className="productos">
         {productos.map((producto) => (
           <TarjetaProducto

@@ -2,6 +2,7 @@ import { Tarjeta } from '../ui/Tarjeta'
 import { FotoPlaceholder } from '../ui/FotoPlaceholder'
 import type { Producto } from '../../types'
 import { catalogo } from '../../data/catalogo'
+import { portadas } from '../../data/portadas'
 import { separarDescripcion } from '../../utils/descripcion'
 
 interface TarjetaProductoProps {
@@ -13,8 +14,12 @@ export function TarjetaProducto({
   producto,
   onVerProducto,
 }: TarjetaProductoProps) {
-  // La foto de la tarjeta es la del producto; si no hay, usa la primera del catálogo.
-  const primeraFoto = producto.fotos[0] ?? catalogo[producto.id]?.[0]?.src
+  // La foto de la tarjeta es la portada que se haya elegido en el panel;
+  // si no hay, usa la primera del producto o la del catálogo.
+  const primeraFoto =
+    portadas[producto.id] ??
+    producto.fotos[0] ??
+    catalogo[producto.id]?.[0]?.src
   const { cuerpo } = separarDescripcion(producto.descripcion)
 
   return (

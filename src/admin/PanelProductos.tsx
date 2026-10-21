@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { ConfigGitHub } from './github'
-import { guardarTexto, leerTexto } from './github'
+import { guardarTexto, leerTexto, subirArchivo, urlCruda } from './github'
+import { comprimirImagen } from './compresor'
 import { PRODUCTOS_LABEL } from './constantes'
 
 interface ListaEditor {
@@ -17,23 +18,35 @@ interface InfoProducto {
 
 type InfoGlobal = Record<string, InfoProducto>
 
+/** Imagen de portada elegida para una categoría de producto. */
+interface Portada {
+  archivo: string
+  version: string
+}
+
+type Portadas = Record<string, Portada>
+
 export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
   const [cargando, setCargando] = useState(true)
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState('')
   const [mensaje, setMensaje] = useState('')
   const [info, setInfo] = useState<InfoGlobal>({})
+  const [portadas, setPortadas] = useState<Portadas>({})
+  const [subiendo, setSubiendo] = useState('')
 
   const cargar = async () => {
     setCargando(true)
     setError('')
     try {
       const archivo = await leerTexto(cfg, 'contenido/info.json')
-      if (!archivo) {
-        setError('Aún no existe contenido/info.json en este repositorio.')
-        return
+      if (archivo) {
+        setInfo(JSON.parse(archivo.texto) as InfoGlobal)
       }
-      setInfo(JSON.parse(archivo.texto) as InfoGlobal)
+      const archivoPortadas = await leerTexto(cfg, 'contenido/productos.json')
+      if (archivoPortadas) {
+        setPortadas(JSON.parse(archivoPortadas.texto) as Portadas)
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo cargar los productos.')
     } finally {
@@ -120,6 +133,61 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
     setInfo((prev) => ({ ...prev, [clave.trim()]: { mostrarPrecios: true } }))
   }
 
+  /** Sube (o reemplaza) la imagen de portada de una categoría de producto. */
+  const subirPortada = async (id: string, archivo: File) => {
+    setSubiendo(id)
+    setError('')
+    setMensaje('')
+    try {
+      const { base64 } = await comprimirImagen(archivo, 1200, 0.85)
+      await subirArchivo(
+        cfg,
+        `public/productos/${id}-portada.webp`,
+        base64,
+        `Cambiar la imagen de portada de ${id} desde el panel`,
+      )
+      const copia: Portadas = {
+        ...portadas,
+        [id]: { archivo: `/productos/${id}-portada.webp`, version: String(Date.now()) },
+      }
+      setPortadas(copia)
+      await guardarTexto(
+        cfg,
+        'contenido/productos.json',
+        `${JSON.stringify(copia, null, 2)}\n`,
+        `Actualizar la imagen de portada de ${id}`,
+      )
+      setMensaje(`Portada de ${PRODUCTOS_LABEL[id] ?? id} actualizada ✅`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo subir la portada.')
+    } finally {
+      setSubiendo('')
+    }
+  }
+
+  /** Vuelve a mostrar la primera foto del producto como portada. */
+  const quitarPortada = async (id: string) => {
+    setSubiendo(id)
+    setError('')
+    setMensaje('')
+    try {
+      const copia = { ...portadas }
+      delete copia[id]
+      setPortadas(copia)
+      await guardarTexto(
+        cfg,
+        'contenido/productos.json',
+        `${JSON.stringify(copia, null, 2)}\n`,
+        `Quitar la imagen de portada de ${id}`,
+      )
+      setMensaje(`Portada de ${PRODUCTOS_LABEL[id] ?? id} quitada`)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'No se pudo quitar la portada.')
+    } finally {
+      setSubiendo('')
+    }
+  }
+
   if (cargando) return <p className="admin-estado">Cargando productos…</p>
 
   return (
@@ -136,8 +204,73 @@ export function PanelProductos({ cfg }: { cfg: ConfigGitHub }) {
 
       <p className="admin-aviso">
         Aquí editas el texto que se muestra al abrir cada producto (los mensajes de
-        arriba, si muestra precio por foto, y las listas de sabores o rellenos).
+        arriba, si muestra precio por foto, y las listas de sabores o rellenos), y la
+        imagen de portada de cada categoría.
       </p>
+
+      <section className="admin-bloque">
+        <h3>Imagen de portada de cada categoría</h3>
+        <p className="admin-ayuda">
+          Esta es la foto grande que sale en cada tarjeta de la sección «Nuestros
+          productos». Sube la imagen que quieras para esa categoría: se optimiza sola y
+          la página la muestra en un par de minutos.
+        </p>
+
+        <div className="admin-rejilla-fotos">
+          {Object.keys(PRODUCTOS_LABEL).map((id) => {
+            const portada = portadas[id]
+            const vista = portada
+              ? `${urlCruda(cfg, `public${portada.archivo}`)}?v=${portada.version}`
+              : ''
+            return (
+              <div className="admin-foto" key={id}>
+                {vista ? (
+                  <img src={vista} alt={PRODUCTOS_LABEL[id] ?? id} loading="lazy" />
+                ) : (
+                  <div className="admin-foto-sin-imagen">Sin portada</div>
+                )}
+                <p className="admin-foto-nombre">{PRODUCTOS_LABEL[id] ?? id}</p>
+                <p className="admin-foto-pagina">
+                  {portada ? 'Portada personalizada ✅' : 'Usa la primera foto del producto'}
+                </p>
+                <div className="admin-foto-acciones">
+                  <label
+                    className="admin-boton admin-boton-chico"
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') e.currentTarget.querySelector('input')?.click()
+                    }}
+                  >
+                    {subiendo === id ? 'Subiendo…' : 'Cambiar'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      hidden
+                      disabled={subiendo === id}
+                      onChange={(e) => {
+                        const archivo = e.target.files?.[0]
+                        e.target.value = ''
+                        if (archivo) void subirPortada(id, archivo)
+                      }}
+                    />
+                  </label>
+                  {portada && (
+                    <button
+                      type="button"
+                      className="admin-boton admin-boton-rojo admin-boton-chico"
+                      disabled={subiendo === id}
+                      onClick={() => void quitarPortada(id)}
+                    >
+                      Quitar
+                    </button>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </section>
 
       {Object.entries(info).map(([clave, producto]) => (
         <section className="admin-bloque" key={clave}>

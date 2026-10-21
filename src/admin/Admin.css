@@ -461,3 +461,15 @@ textarea.admin-entrada {
   object-fit: contain;
   mix-blend-mode: multiply;
 }
+
+.admin-foto-sin-imagen {
+  width: 100%;
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3ecdd;
+  color: #a08fa6;
+  font-size: 13px;
+  text-align: center;
+}

@@ -27,6 +27,7 @@ const SALIDA_CATALOGO = path.join(RAIZ, 'src', 'data', 'catalogo.ts')
 const SALIDA_INFO = path.join(RAIZ, 'src', 'data', 'catalogoInfo.ts')
 const SALIDA_COMBOS = path.join(RAIZ, 'src', 'data', 'combos.ts')
 const SALIDA_LOGO = path.join(RAIZ, 'src', 'data', 'logo.ts')
+const SALIDA_PORTADAS = path.join(RAIZ, 'src', 'data', 'portadas.ts')
 
 function leerJson(ruta, respaldo) {
   if (!fs.existsSync(ruta)) return respaldo
@@ -232,3 +233,28 @@ export const logoMarca: LogoMarca = {
 )
 
 console.log(`Logo: ${logoActivo ? logoArchivo : 'oculto'}`)
+
+// --- Imágenes de portada de cada categoría de producto ---
+
+const portadasConfig = leerJson(path.join(CONTENIDO, 'productos.json'), {})
+const portadas = {}
+if (portadasConfig && typeof portadasConfig === 'object' && !Array.isArray(portadasConfig)) {
+  for (const [clave, valor] of Object.entries(portadasConfig)) {
+    const archivo = String(valor?.archivo ?? '').trim()
+    if (!archivo) continue
+    const version = String(valor?.version ?? '1')
+    portadas[clave] = `${archivo}?v=${version}`
+  }
+}
+
+fs.writeFileSync(
+  SALIDA_PORTADAS,
+  `// ARCHIVO GENERADO por scripts/generar-catalogo.mjs — no editar a mano.
+// La fuente editable es contenido/productos.json (o el panel de la web).
+
+/** Imagen de portada de cada categoría de producto (la que sale en su tarjeta). */
+export const portadas: Record<string, string> = ${JSON.stringify(portadas, null, 2)}
+`,
+)
+
+console.log(`Portadas de productos: ${Object.keys(portadas).length}`)

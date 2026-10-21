@@ -101,6 +101,7 @@ function App() {
         nombreMarca={NOMBRE_MARCA}
         enlaces={enlacesNavegacion}
         accion={{ etiqueta: 'Hacer mi pedido', href: '#contacto' }}
+        logo={logoMarca.activo ? { src: logoMarca.src, alt: logoMarca.alt } : undefined}
       />
 
       <Inicio

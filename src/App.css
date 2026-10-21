@@ -60,6 +60,22 @@ a {
   white-space: nowrap;
 }
 
+/* El logo de la cabecera (la misma imagen de la portada) */
+.logo-imagen {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.logo-imagen img {
+  display: block;
+  height: 58px;
+  width: auto;
+  object-fit: contain;
+  /* El logo tiene fondo blanco: al multiplicarlo se funde con el fondo y no se ve un cuadro. */
+  mix-blend-mode: multiply;
+}
+
 nav {
   display: flex;
   gap: 18px;
@@ -537,6 +553,10 @@ footer p {
 
   .encabezado {
     flex-direction: column;
+  }
+
+  .logo-imagen img {
+    height: 46px;
   }
 
   nav {

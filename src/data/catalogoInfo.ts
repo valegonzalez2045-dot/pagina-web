@@ -47,13 +47,13 @@ export const catalogoInfo: Record<string, InfoCatalogo> = {
   },
   "sweetcakes": {
     "notas": [
-      "Cada pastel se cotiza según el diseño, sabor y tamaño 🎂. Contáctanos por WhatsApp para cotizarte de manera individual 💬",
+      "Cada pastel se cotiza según el diseño, sabor y tamaño 🎂.",
       "Estos son algunos de los pasteles que hemos hecho. ¿Tienes un diseño diferente? Compártenos las imágenes y lo haremos realidad 💕"
     ],
     "mostrarPrecios": false,
     "listas": [
       {
-        "titulo": "Escoge el sabor de tu pastel:",
+        "titulo": "Sabor de pastel",
         "opciones": [
           "Naranja 🍊",
           "Maracuya",
@@ -72,7 +72,7 @@ export const catalogoInfo: Record<string, InfoCatalogo> = {
         ]
       },
       {
-        "titulo": "Escoge el sabor de tu relleno:",
+        "titulo": "Sabor de relleno:",
         "opciones": [
           "Ganache de chocolate blanco",
           "Ganache de chocolate negro",

@@ -61,6 +61,7 @@ export const catalogo: Record<string, FotoCatalogo[]> = {
     { src: "/catalogo/artecookies/artecookies-39-11.webp", precio: "" },
     { src: "/catalogo/artecookies/artecookies-39-12.webp", precio: "" },
     { src: "/catalogo/artecookies/artecookies-39-13.webp", precio: "" },
+    { src: "/catalogo/artecookies/artecookies-40-1.webp", precio: "" },
   ],
   "cakepops": [
     { src: "/catalogo/cakepops/cakepops-35-1.webp", precio: "$10.000" },

@@ -184,6 +184,107 @@ export async function borrarArchivo(
   )
 }
 
+export interface ArchivoParaGuardar {
+  ruta: string
+  base64: string
+}
+
+/**
+ * Guarda varios archivos (y borra otros) en UN SOLO commit.
+ *
+ * Se usa en la pestaña «Fotos»: aunque cambies 20 fotos, precios y el orden,
+ * a GitHub llega un único cambio y la web se compila UNA sola vez (así no se
+ * gastan compilaciones de más).
+ */
+export async function guardarLote(
+  cfg: ConfigGitHub,
+  archivos: ArchivoParaGuardar[],
+  borrados: string[],
+  mensaje: string,
+): Promise<void> {
+  if (archivos.length === 0 && borrados.length === 0) return
+
+  const repo = `${API}/repos/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}`
+  const conJson = { ...cabeceras(cfg.token), 'Content-Type': 'application/json' }
+  const rama = encodeURIComponent(cfg.branch)
+
+  // 1. En qué commit está la rama ahora.
+  const referencia = (await asegurar(
+    await fetch(`${repo}/git/ref/heads/${rama}`, { headers: cabeceras(cfg.token) }),
+  )) as { object?: { sha?: string } }
+  const commitActual = referencia.object?.sha
+  if (!commitActual) throw new Error('No se encontró la rama en GitHub.')
+
+  const commit = (await asegurar(
+    await fetch(`${repo}/git/commits/${commitActual}`, {
+      headers: cabeceras(cfg.token),
+    }),
+  )) as { tree?: { sha?: string } }
+  const arbolBase = commit.tree?.sha
+  if (!arbolBase) throw new Error('No se encontró el árbol de archivos en GitHub.')
+
+  // 2. Se sube el contenido de cada archivo (en paralelo, de a 4).
+  const entradas: Array<{ path: string; mode: string; type: string; sha: string | null }> = []
+
+  const subirBlob = async (archivo: ArchivoParaGuardar) => {
+    const blob = (await asegurar(
+      await fetch(`${repo}/git/blobs`, {
+        method: 'POST',
+        headers: conJson,
+        body: JSON.stringify({ content: archivo.base64, encoding: 'base64' }),
+      }),
+    )) as { sha?: string }
+    if (!blob.sha) throw new Error(`No se pudo subir "${archivo.ruta}".`)
+    entradas.push({
+      path: rutaLimpia(archivo.ruta),
+      mode: '100644',
+      type: 'blob',
+      sha: blob.sha,
+    })
+  }
+
+  for (let i = 0; i < archivos.length; i += 4) {
+    await Promise.all(archivos.slice(i, i + 4).map(subirBlob))
+  }
+
+  // 3. Los archivos borrados (sha: null).
+  for (const ruta of borrados) {
+    entradas.push({ path: rutaLimpia(ruta), mode: '100644', type: 'blob', sha: null })
+  }
+
+  // 4. Árbol y commit nuevos.
+  const arbol = (await asegurar(
+    await fetch(`${repo}/git/trees`, {
+      method: 'POST',
+      headers: conJson,
+      body: JSON.stringify({ base_tree: arbolBase, tree: entradas }),
+    }),
+  )) as { sha?: string }
+  if (!arbol.sha) throw new Error('No se pudo preparar el cambio.')
+
+  const nuevoCommit = (await asegurar(
+    await fetch(`${repo}/git/commits`, {
+      method: 'POST',
+      headers: conJson,
+      body: JSON.stringify({
+        message: mensaje,
+        tree: arbol.sha,
+        parents: [commitActual],
+      }),
+    }),
+  )) as { sha?: string }
+  if (!nuevoCommit.sha) throw new Error('No se pudo crear el cambio.')
+
+  // 5. Se mueve la rama al commit nuevo.
+  await asegurar(
+    await fetch(`${repo}/git/refs/heads/${rama}`, {
+      method: 'PATCH',
+      headers: conJson,
+      body: JSON.stringify({ sha: nuevoCommit.sha, force: false }),
+    }),
+  )
+}
+
 /** URL directa del archivo en GitHub (para ver las fotos). */
 export function urlCruda(cfg: ConfigGitHub, ruta: string): string {
   return `https://raw.githubusercontent.com/${encodeURIComponent(cfg.owner)}/${encodeURIComponent(cfg.repo)}/${encodeURIComponent(cfg.branch)}/${rutaLimpia(ruta)}`

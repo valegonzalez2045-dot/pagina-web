@@ -395,6 +395,19 @@ textarea.admin-entrada {
   font-size: 13px;
 }
 
+/* Aviso de foto cambiada que todavía no se ha publicado */
+.admin-foto-nueva {
+  display: inline-block;
+  margin: 0 10px 8px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: #fdeedd;
+  border: 1px solid #f0c992;
+  color: #a15a1a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
 /* Combos */
 .admin-combo-fotos {
   margin-top: 14px;

@@ -1,5 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import crypto from 'node:crypto'
 
 /**
  * Genera el catálogo que usa la web a partir de:
@@ -52,6 +53,41 @@ function analizarNombre(archivo) {
   const coincidencia = archivo.match(/-(\d+)-(\d+)\.webp$/)
   if (!coincidencia) return { pagina: 0, orden: 0 }
   return { pagina: Number(coincidencia[1]), orden: Number(coincidencia[2]) }
+}
+
+const versiones = new Map()
+
+/**
+ * Versión corta del contenido de una imagen de /public: hace que el navegador
+ * muestre la foto nueva cuando se reemplaza una foto con el mismo nombre.
+ */
+function versionDe(rutaPublica) {
+  const limpia = String(rutaPublica ?? '').split('?')[0].trim()
+  if (!limpia.startsWith('/')) return ''
+  if (versiones.has(limpia)) return versiones.get(limpia)
+  let version = ''
+  try {
+    const absoluta = path.join(RAIZ, 'public', limpia)
+    if (fs.existsSync(absoluta) && fs.statSync(absoluta).isFile()) {
+      version = crypto
+        .createHash('sha1')
+        .update(fs.readFileSync(absoluta))
+        .digest('hex')
+        .slice(0, 10)
+    }
+  } catch {
+    version = ''
+  }
+  versiones.set(limpia, version)
+  return version
+}
+
+function conVersion(rutaPublica) {
+  const ruta = String(rutaPublica ?? '').trim()
+  if (!ruta) return ''
+  const version = versionDe(ruta)
+  if (!version) return ruta
+  return `${ruta}${ruta.includes('?') ? '&' : '?'}v=${version}`
 }
 
 const secciones = leerJson(path.join(CONTENIDO, 'secciones.json'), {})
@@ -107,7 +143,7 @@ if (fs.existsSync(PUBLIC_CATALOGO)) {
 
   const agregar = (producto, seccion, archivo, precio) => {
     ;(fotosPorProducto[producto] ??= []).push({
-      src: `/catalogo/${seccion}/${archivo}`,
+      src: conVersion(`/catalogo/${seccion}/${archivo}`),
       precio,
     })
     total++
@@ -213,10 +249,11 @@ export const catalogoInfo: Record<string, InfoCatalogo> = ${JSON.stringify(infoO
 const combosConfig = leerJson(path.join(CONTENIDO, 'combos.json'), { combos: [] })
 const listaCombos = Array.isArray(combosConfig.combos) ? combosConfig.combos : []
 const muestraCombos = Array.isArray(combosConfig.muestra)
-  ? combosConfig.muestra.map(String).filter(Boolean)
+  ? combosConfig.muestra.map(String).filter(Boolean).map(conVersion)
   : []
 // La imagen que sale al lado del botón de la sección y el texto del botón.
-const destacadaCombos = String(combosConfig.destacada ?? '').trim() || muestraCombos[0] || ''
+const destacadaCombos =
+  conVersion(String(combosConfig.destacada ?? '').trim()) || muestraCombos[0] || ''
 const tituloBotonCombos =
   String(combosConfig.tituloBoton ?? '').trim() ||
   'Encuentra el detalle perfecto para regalar'
@@ -232,7 +269,7 @@ const combosNormalizados = listaCombos.map((combo, i) => {
     emoji: String(combo?.emoji ?? '🎁'),
     descripcion: String(combo?.descripcion ?? ''),
     precio: String(combo?.precio ?? ''),
-    fotos,
+    fotos: fotos.map(conVersion),
   }
 })
 
@@ -313,7 +350,9 @@ const productosNormalizados = []
 
 if (productosConfig && typeof productosConfig === 'object' && !Array.isArray(productosConfig)) {
   for (const [id, cfg] of Object.entries(productosConfig)) {
-    const fotos = Array.isArray(cfg?.fotos) ? cfg.fotos.map(String).filter(Boolean) : []
+    const fotos = Array.isArray(cfg?.fotos)
+      ? cfg.fotos.map(String).filter(Boolean).map(conVersion)
+      : []
     productosNormalizados.push({
       id,
       nombre: String(cfg?.nombre ?? id),
@@ -401,7 +440,7 @@ const galeriaNormalizada = fotosGaleria
   .map((foto, i) => ({
     id: `galeria-${i + 1}`,
     etiqueta: String(foto?.etiqueta ?? 'Petite Princesse'),
-    src: String(foto?.src ?? '').trim(),
+    src: conVersion(foto?.src),
   }))
   .filter((foto) => foto.src)
 

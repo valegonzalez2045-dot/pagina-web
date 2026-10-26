@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { ConfigGitHub } from './github'
-import { borrarArchivo, guardarTexto, leerTexto, listarCarpeta, subirArchivo, urlCruda } from './github'
+import { bytesABase64, guardarLote, leerTexto, listarCarpeta, urlCruda } from './github'
 import { comprimirImagen } from './compresor'
 import { desglosarNombre, PRODUCTOS_LABEL, SECCIONES_LABEL } from './constantes'
 
@@ -9,6 +9,8 @@ interface EntradaFoto {
   seccion: string
   foto: string
   precio: string
+  /** Imagen nueva (data URL) que se sube recién al apretar «Guardar cambios». */
+  nueva?: string
 }
 
 type ListaPorProducto = Record<string, EntradaFoto[]>
@@ -40,6 +42,10 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
   const [arrastrando, setArrastrando] = useState<number | null>(null)
   /** Precio que se puede aplicar de una vez a todas las fotos del producto. */
   const [precioMasivo, setPrecioMasivo] = useState('')
+  /** Cómo estaba la lista al cargar (para saber qué fotos se borraron). */
+  const [original, setOriginal] = useState<ListaPorProducto>({})
+  /** sha de cada archivo en GitHub (para que la miniatura no salga en caché vieja). */
+  const [shas, setShas] = useState<Record<string, string>>({})
 
   // Para agregar foto nueva
   const [seccionNueva, setSeccionNueva] = useState('')
@@ -99,8 +105,14 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
 
       // Fotos que hay en el repositorio, por sección.
       const archivosPorSeccion: Record<string, string[]> = {}
+      const shasNuevos: Record<string, string> = {}
       for (const seccion of Object.keys(mapaSecciones)) {
         const carpeta = await listarCarpeta(cfg, `public/catalogo/${seccion}`)
+        for (const archivo of carpeta) {
+          if (archivo.type === 'file') {
+            shasNuevos[`${seccion}/${archivo.name}`] = archivo.sha
+          }
+        }
         archivosPorSeccion[seccion] = carpeta
           .filter((a) => a.type === 'file' && a.name.toLowerCase().endsWith('.webp'))
           .map((a) => a.name)
@@ -156,7 +168,9 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
         nueva[nombre] = entradas
       }
 
+      setShas(shasNuevos)
       setLista(nueva)
+      setOriginal(nueva)
       const primero = Object.keys(mapaSecciones)[0]
       if (primero) setProducto((actual) => actual || mapaSecciones[primero])
     } catch (e) {
@@ -178,6 +192,22 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
   }, [seccionesDelProducto, seccionNueva])
 
   const fotos = lista[producto] ?? []
+
+  /** Cuántos cambios hay sin publicar (fotos cambiadas/agregadas o borradas). */
+  const cambiosPendientes = (() => {
+    const enLista = new Set(
+      Object.values(lista)
+        .flat()
+        .map((entrada) => `${entrada.seccion}/${entrada.foto}`),
+    )
+    const borradas = Object.values(original)
+      .flat()
+      .filter((entrada) => !enLista.has(`${entrada.seccion}/${entrada.foto}`)).length
+    const nuevas = Object.values(lista)
+      .flat()
+      .filter((entrada) => entrada.nueva).length
+    return borradas + nuevas
+  })()
 
   const actualizar = (nuevaLista: ListaPorProducto) => setLista(nuevaLista)
 
@@ -239,20 +269,62 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
       // Cada foto guarda SU precio (ya no hay precios por página ni generales
       // que manden por encima de lo que se ve aquí).
       const contenido: Record<string, Array<{ seccion: string; foto: string; precio: string }>> = {}
+      const archivos: Array<{ ruta: string; base64: string }> = []
       for (const [nombre, entradas] of Object.entries(lista)) {
         contenido[nombre] = entradas.map((entrada) => ({
           seccion: entrada.seccion,
           foto: entrada.foto,
           precio: entrada.precio,
         }))
+        for (const entrada of entradas) {
+          if (!entrada.nueva) continue
+          archivos.push({
+            ruta: `public/catalogo/${entrada.seccion}/${entrada.foto}`,
+            base64: entrada.nueva.split(',')[1] ?? '',
+          })
+        }
       }
-      await guardarTexto(
-        cfg,
-        'contenido/fotos.json',
-        `${JSON.stringify(contenido, null, 2)}\n`,
-        'Actualizar orden y precios de las fotos desde el panel de Petite Princesse',
+
+      archivos.push({
+        ruta: 'contenido/fotos.json',
+        base64: bytesABase64(
+          new TextEncoder().encode(`${JSON.stringify(contenido, null, 2)}\n`),
+        ),
+      })
+
+      // Fotos que estaban antes y ya no están en la lista → se borran.
+      const enLista = new Set(
+        Object.values(lista)
+          .flat()
+          .map((entrada) => `${entrada.seccion}/${entrada.foto}`),
       )
-      setMensaje('Fotos guardadas ✅ La web se actualiza sola en un par de minutos.')
+      const borrados: string[] = []
+      for (const entrada of Object.values(original).flat()) {
+        if (!enLista.has(`${entrada.seccion}/${entrada.foto}`)) {
+          borrados.push(`public/catalogo/${entrada.seccion}/${entrada.foto}`)
+        }
+      }
+
+      // TODO en un solo commit = una sola compilación de la web.
+      await guardarLote(
+        cfg,
+        archivos,
+        borrados,
+        'Actualizar fotos y precios desde el panel de Petite Princesse',
+      )
+
+      const cambiadas = archivos.length - 1
+      const detalle = [
+        cambiadas > 0 ? `${cambiadas} foto(s) nueva(s) o cambiada(s)` : '',
+        borrados.length > 0 ? `${borrados.length} borrada(s)` : '',
+      ]
+        .filter(Boolean)
+        .join(' y ')
+
+      setMensaje(
+        `Guardado ✅ ${detalle ? `(${detalle}). ` : ''}La web se actualiza sola en un par de minutos.`,
+      )
+      await cargar()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudieron guardar las fotos.')
     } finally {
@@ -266,47 +338,45 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
     setMensaje('')
     try {
       const comprimida = await comprimirImagen(archivo)
-      await subirArchivo(
-        cfg,
-        `public/catalogo/${entrada.seccion}/${entrada.foto}`,
-        comprimida.base64,
-        `Reemplazar foto ${entrada.foto} desde el panel de Petite Princesse`,
+      const copia = (lista[producto] ?? []).map((foto) =>
+        foto.seccion === entrada.seccion && foto.foto === entrada.foto
+          ? { ...foto, nueva: `data:image/webp;base64,${comprimida.base64}` }
+          : foto,
       )
-      setMensaje(`Foto "${entrada.foto}" actualizada ✅`)
+      actualizar({ ...lista, [producto]: copia })
+      setMensaje(
+        'Foto cambiada ✅ Aprieta «Guardar cambios» para publicarla (así no se gasta una compilación por foto).',
+      )
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo reemplazar la foto.')
+      setError(e instanceof Error ? e.message : 'No se pudo preparar la foto.')
     } finally {
       setOcupado(false)
     }
   }
 
-  const eliminar = async (entrada: EntradaFoto) => {
-    if (!window.confirm(`¿Eliminar "${entrada.foto}"? El cambio se guarda de inmediato.`)) return
-    setOcupado(true)
-    setError('')
-    setMensaje('')
-    try {
-      const archivos = await listarCarpeta(cfg, `public/catalogo/${entrada.seccion}`)
-      const existente = archivos.find((a) => a.name === entrada.foto)
-      if (existente) {
-        await borrarArchivo(
-          cfg,
-          `public/catalogo/${entrada.seccion}/${entrada.foto}`,
-          existente.sha,
-          `Eliminar foto ${entrada.foto} desde el panel de Petite Princesse`,
-        )
-      }
-      setMensaje(`Foto "${entrada.foto}" eliminada ✕`)
-      // La quitamos de la lista para que no vuelva a salir al recargar.
-      const copia = (lista[producto] ?? []).filter(
-        (f) => !(f.seccion === entrada.seccion && f.foto === entrada.foto),
+  /** Descarta la foto nueva y deja la que está publicada. */
+  const deshacerCambio = (entrada: EntradaFoto) => {
+    const copia = (lista[producto] ?? []).map((foto) =>
+      foto.seccion === entrada.seccion && foto.foto === entrada.foto
+        ? { ...foto, nueva: undefined }
+        : foto,
+    )
+    actualizar({ ...lista, [producto]: copia })
+  }
+
+  const eliminar = (entrada: EntradaFoto) => {
+    if (
+      !window.confirm(
+        `¿Quitar "${entrada.foto}" de la lista? Se borra de la web cuando aprietes «Guardar cambios».`,
       )
-      actualizar({ ...lista, [producto]: copia })
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo eliminar la foto.')
-    } finally {
-      setOcupado(false)
+    ) {
+      return
     }
+    const copia = (lista[producto] ?? []).filter(
+      (f) => !(f.seccion === entrada.seccion && f.foto === entrada.foto),
+    )
+    actualizar({ ...lista, [producto]: copia })
+    setMensaje('Foto quitada de la lista ✅ Aprieta «Guardar cambios» para publicarlo.')
   }
 
   const agregar = async (archivo: File) => {
@@ -318,9 +388,9 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
       const pagina = paginaNueva.trim() || '40'
       const ordenInicial = Number(ordenNueva.trim() || '1') || 1
       // Nunca pisamos una foto que ya existe: buscamos un nombre libre.
-      const existentes = (await listarCarpeta(cfg, `public/catalogo/${seccionNueva}`)).map(
-        (a) => a.name,
-      )
+      const existentes = Object.keys(shas)
+        .filter((clave) => clave.startsWith(`${seccionNueva}/`))
+        .map((clave) => clave.slice(seccionNueva.length + 1))
       let orden = ordenInicial
       let nombre = `${seccionNueva}-${pagina}-${orden}.webp`
       while (existentes.includes(nombre)) {
@@ -328,21 +398,18 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
         nombre = `${seccionNueva}-${pagina}-${orden}.webp`
       }
       const comprimida = await comprimirImagen(archivo)
-      await subirArchivo(
-        cfg,
-        `public/catalogo/${seccionNueva}/${nombre}`,
-        comprimida.base64,
-        `Agregar foto ${nombre} desde el panel de Petite Princesse`,
-      )
       const nuevaEntrada: EntradaFoto = {
         seccion: seccionNueva,
         foto: nombre,
         precio: precioPorDefecto(seccionNueva, nombre),
+        nueva: `data:image/webp;base64,${comprimida.base64}`,
       }
       const copia = [...(lista[producto] ?? []), nuevaEntrada]
       actualizar({ ...lista, [producto]: copia })
       setOrdenNueva('')
-      setMensaje(`Foto "${nombre}" subida ✅ (recuerda guardar los cambios)`)
+      setMensaje(
+        `Foto "${nombre}" lista ✅ Aprieta «Guardar cambios» para publicarla.`,
+      )
     } catch (e) {
       setError(e instanceof Error ? e.message : 'No se pudo subir la foto.')
     } finally {
@@ -368,13 +435,21 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
 
       {error && <p className="admin-error">{error}</p>}
       {mensaje && <p className="admin-ok">{mensaje}</p>}
+      {cambiosPendientes > 0 && (
+        <p className="admin-aviso">
+          Tienes <strong>{cambiosPendientes} cambio(s) sin publicar</strong>. Aprieta{' '}
+          <strong>«Guardar cambios»</strong> para que salgan en la web.
+        </p>
+      )}
 
       <p className="admin-aviso">
         Aquí ves <strong>exactamente las fotos que salen en cada producto</strong>{' '}
         (en el mismo orden). <strong>Cada foto tiene su propio precio</strong>: lo
         escribes en el cuadro de abajo de la foto y ese es el que sale en la web.
         También puedes <strong>cambiarlas de lugar</strong> (arrastrando o con las
-        flechas) y <strong>cambiar la foto</strong> sin perder su precio.
+        flechas) y <strong>cambiar la foto</strong> sin perder su precio. Nada se
+        publica hasta que aprietes <strong>«Guardar cambios»</strong>: así todo sale
+        junto y la web se compila una sola vez.
       </p>
       <p className="admin-ayuda">
         Ya no hay precios por página: el precio es de cada foto, así que puedes
@@ -431,13 +506,19 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
             >
               <span className="admin-foto-posicion">#{indice + 1}</span>
               <img
-                src={`${urlCruda(cfg, `public/catalogo/${entrada.seccion}/${entrada.foto}`)}?v=${encodeURIComponent(entrada.foto)}`}
+                src={
+                  entrada.nueva ??
+                  `${urlCruda(cfg, `public/catalogo/${entrada.seccion}/${entrada.foto}`)}?v=${shas[`${entrada.seccion}/${entrada.foto}`] ?? '1'}`
+                }
                 alt={entrada.foto}
                 loading="lazy"
               />
               <p className="admin-foto-nombre" title={entrada.foto}>
                 {entrada.foto}
               </p>
+              {entrada.nueva && (
+                <span className="admin-foto-nueva">Foto nueva · sin publicar</span>
+              )}
               <p className="admin-foto-pagina">
                 {SECCIONES_LABEL[entrada.seccion] ?? entrada.seccion}
               </p>
@@ -492,6 +573,17 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
                     }}
                   />
                 </label>
+                {entrada.nueva && (
+                  <button
+                    type="button"
+                    className="admin-boton admin-boton-chico"
+                    disabled={ocupado}
+                    onClick={() => deshacerCambio(entrada)}
+                    title="Volver a la foto que está publicada"
+                  >
+                    Deshacer
+                  </button>
+                )}
                 <button
                   type="button"
                   className="admin-boton admin-boton-rojo admin-boton-chico"

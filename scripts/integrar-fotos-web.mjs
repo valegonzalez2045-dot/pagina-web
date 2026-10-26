@@ -81,7 +81,6 @@ function claveOrden(nombre, mtimeMs) {
 function precioDe(seccion, producto, pagina, base) {
   return (
     precios.porArchivo?.[`${seccion}/${base}`] ??
-    precios.porPagina?.[String(pagina)] ??
     precios.porSeccion?.[seccion] ??
     precios.porProducto?.[producto] ??
     ''

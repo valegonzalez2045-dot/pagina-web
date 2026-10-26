@@ -10,12 +10,11 @@ import path from 'node:path'
  * Los PRECIOS se leen de contenido/precios.json (si existe). Estructura:
  *   {
  *     "porArchivo": { "fresas-con-crema/fresas-con-crema-41-1": "$5.000" },
- *     "porPagina":  { "3": "$3.000", "4": "$4.000" },
  *     "porSeccion": { "chocomellows-sencillos": "$3.000" },
  *     "porProducto":{ "cookie-fusion": "$10.000" }
  *   }
- * Prioridad: porArchivo > porPagina > porSeccion > porProducto.
- * `porPagina` aplica a CUALQUIER sección que tenga fotos en esa página.
+ * Prioridad: porArchivo > porSeccion > porProducto.
+ * (El precio de cada foto vive en contenido/fotos.json.)
  */
 
 const ORIGEN = 'imagenes-extraidas'
@@ -33,14 +32,12 @@ const precios = fs.existsSync(PRECIOS_JSON)
   ? JSON.parse(fs.readFileSync(PRECIOS_JSON, 'utf8'))
   : {}
 const porArchivo = precios.porArchivo ?? {}
-const porPagina = precios.porPagina ?? {}
 const porSeccion = precios.porSeccion ?? {}
 const porProducto = precios.porProducto ?? {}
 
 function precioDe(seccion, producto, pagina, base) {
   return (
     porArchivo[`${seccion}/${base}`] ??
-    porPagina[String(parseInt(pagina, 10))] ??
     porSeccion[seccion] ??
     porProducto[producto] ??
     ''

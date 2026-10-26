@@ -6,15 +6,11 @@ import { PRODUCTOS_LABEL, SECCIONES_LABEL } from './constantes'
 type Mapa = Record<string, string>
 
 interface DatosPrecios {
-  porArchivo: Mapa
-  porPagina: Mapa
   porSeccion: Mapa
   porProducto: Mapa
 }
 
 const DATOS_VACIOS: DatosPrecios = {
-  porArchivo: {},
-  porPagina: {},
   porSeccion: {},
   porProducto: {},
 }
@@ -117,8 +113,6 @@ export function PanelPrecios({ cfg }: { cfg: ConfigGitHub }) {
       }
       const crudo = JSON.parse(archivo.texto) as Partial<DatosPrecios>
       setDatos({
-        porArchivo: crudo.porArchivo ?? {},
-        porPagina: crudo.porPagina ?? {},
         porSeccion: crudo.porSeccion ?? {},
         porProducto: crudo.porProducto ?? {},
       })
@@ -168,29 +162,21 @@ export function PanelPrecios({ cfg }: { cfg: ConfigGitHub }) {
       {mensaje && <p className="admin-ok">{mensaje}</p>}
 
       <p className="admin-aviso">
-        El precio de cada foto se toma con esta prioridad:{' '}
-        <strong>el que le pongas a esa foto en la pestaña «Fotos»</strong> &gt;{' '}
-        <strong>por página</strong> &gt; <strong>por sección</strong> &gt;{' '}
-        <strong>por producto</strong>. Si dejas vacío un cuadro, esa foto mostrará
-        «Precio por confirmar».
+        El precio de <strong>cada foto</strong> se pone en la pestaña{' '}
+        <strong>«Fotos»</strong>, ahí mismo donde mueves las fotos de cada producto.
+        Ya no hay precios por página: el precio que le pongas a una foto es el que
+        sale en la web.
       </p>
       <p className="admin-ayuda">
-        Lo de esta pestaña son los <strong>precios generales</strong> (por página,
-        sección o producto). El precio de <strong>cada foto</strong> se edita en la
-        pestaña <strong>«Fotos»</strong>, donde también puedes moverlas de lugar.
+        Lo de esta pestaña son solo <strong>precios de arranque</strong>: se usan
+        únicamente cuando una foto todavía no tiene precio propio (por ejemplo, una
+        foto nueva que subas). En cuanto le pongas precio a una foto en «Fotos», ese
+        precio manda.
       </p>
 
       <EditorMapa
-        titulo="Precio por página (chocolatinas por figura)"
-        ayuda="Todas las fotos de esa página quedan con este precio. Ejemplo: si las páginas 4 a 8 valen $4.000, escribe una fila por cada página (4, 5, 6, 7 y 8) con $4.000."
-        ejemploClave="página (ej. 12)"
-        valor={datos.porPagina}
-        onChange={(v) => setDatos((d) => ({ ...d, porPagina: v }))}
-      />
-
-      <EditorMapa
-        titulo="Precio por sección"
-        ayuda="Vale para todas las fotos de una sección. Ejemplo: Chocomellows sencillos, Cakepops, Cookies, Cookie Fusion."
+        titulo="Precio por sección (solo para fotos nuevas)"
+        ayuda="Se usa únicamente para las fotos de esa sección que todavía no tengan precio propio. Ejemplo: Chocomellows sencillos, Cakepops, Cookies, Cookie Fusion."
         ejemploClave="sección"
         idSugerencias="sugerencias-secciones"
         valor={datos.porSeccion}
@@ -198,20 +184,12 @@ export function PanelPrecios({ cfg }: { cfg: ConfigGitHub }) {
       />
 
       <EditorMapa
-        titulo="Precio por producto"
-        ayuda="Vale para todas las fotos del producto. En general no lo vas a necesitar mientras uses precios por página o por sección."
+        titulo="Precio por producto (solo para fotos nuevas)"
+        ayuda="Se usa únicamente para las fotos de ese producto que todavía no tengan precio propio. Casi nunca lo vas a necesitar."
         ejemploClave="producto"
         idSugerencias="sugerencias-productos"
         valor={datos.porProducto}
         onChange={(v) => setDatos((d) => ({ ...d, porProducto: v }))}
-      />
-
-      <EditorMapa
-        titulo="Precio de una foto en especial"
-        ayuda='Solo para casos puntuales. La clave es "sección/nombre-de-la-foto" sin la terminación .webp. Ejemplo: fresas-con-crema/fresas-con-crema-41-1 → $5.000 · 5 onz.'
-        ejemploClave="seccion/foto (ej. fresas-con-crema/fresas-con-crema-41-1)"
-        valor={datos.porArchivo}
-        onChange={(v) => setDatos((d) => ({ ...d, porArchivo: v }))}
       />
 
       <button type="button" className="admin-boton admin-boton-primario" onClick={guardar} disabled={guardando}>

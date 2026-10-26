@@ -59,14 +59,13 @@ const precios = leerJson(path.join(CONTENIDO, 'precios.json'), {})
 const info = leerJson(path.join(CONTENIDO, 'info.json'), {})
 
 const porArchivo = precios.porArchivo ?? {}
-const porPagina = precios.porPagina ?? {}
 const porSeccion = precios.porSeccion ?? {}
 const porProducto = precios.porProducto ?? {}
 
-function precioDe(seccion, producto, pagina, base) {
+/** Precio de una foto: el suyo propio (fotos.json) o, si no tiene, el general. */
+function precioDe(seccion, producto, base) {
   return (
     porArchivo[`${seccion}/${base}`] ??
-    porPagina[String(pagina)] ??
     porSeccion[seccion] ??
     porProducto[producto] ??
     ''
@@ -128,9 +127,8 @@ if (fs.existsSync(PUBLIC_CATALOGO)) {
       if (!seccion || !archivo) continue
       if (!archivosPorSeccion[seccion]?.includes(archivo)) continue
       const base = archivo.replace(/\.webp$/i, '')
-      const { pagina } = analizarNombre(archivo)
       const precio =
-        String(item?.precio ?? '') || precioDe(seccion, producto, pagina, base)
+        String(item?.precio ?? '') || precioDe(seccion, producto, base)
       agregar(producto, seccion, archivo, precio)
       vistas.add(`${seccion}/${archivo}`)
     }
@@ -140,13 +138,7 @@ if (fs.existsSync(PUBLIC_CATALOGO)) {
       for (const archivo of archivosPorSeccion[seccion] ?? []) {
         if (vistas.has(`${seccion}/${archivo}`)) continue
         const base = archivo.replace(/\.webp$/i, '')
-        const { pagina } = analizarNombre(archivo)
-        agregar(
-          producto,
-          seccion,
-          archivo,
-          precioDe(seccion, producto, pagina, base),
-        )
+        agregar(producto, seccion, archivo, precioDe(seccion, producto, base))
       }
     }
   }

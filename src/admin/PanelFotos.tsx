@@ -15,7 +15,6 @@ type ListaPorProducto = Record<string, EntradaFoto[]>
 
 interface MapaPrecios {
   porArchivo: Record<string, string>
-  porPagina: Record<string, string>
   porSeccion: Record<string, string>
   porProducto: Record<string, string>
 }
@@ -23,7 +22,6 @@ interface MapaPrecios {
 const ORDEN_VACIO: ListaPorProducto = {}
 const PRECIOS_VACIOS: MapaPrecios = {
   porArchivo: {},
-  porPagina: {},
   porSeccion: {},
   porProducto: {},
 }
@@ -40,6 +38,8 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
   const [mensaje, setMensaje] = useState('')
   const [ocupado, setOcupado] = useState(false)
   const [arrastrando, setArrastrando] = useState<number | null>(null)
+  /** Precio que se puede aplicar de una vez a todas las fotos del producto. */
+  const [precioMasivo, setPrecioMasivo] = useState('')
 
   // Para agregar foto nueva
   const [seccionNueva, setSeccionNueva] = useState('')
@@ -52,18 +52,16 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
     [secciones, producto],
   )
 
-  /** Precio por defecto de una foto (el de página/sección, si no tiene uno propio). */
+  /** Precio que se le pone a una foto nueva (el de su sección, si lo hay). */
   const precioPorDefecto = (
     seccion: string,
     archivo: string,
     mapa: MapaPrecios = precios,
     mapaSecciones: Record<string, string> = secciones,
   ) => {
-    const { pagina } = desglosarNombre(archivo)
     const base = archivo.replace(/\.webp$/i, '')
     return (
       mapa.porArchivo[`${seccion}/${base}`] ??
-      mapa.porPagina[String(pagina)] ??
       mapa.porSeccion[seccion] ??
       mapa.porProducto[mapaSecciones[seccion]] ??
       ''
@@ -90,7 +88,6 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
         : {}
       const mapaPrecios: MapaPrecios = {
         porArchivo: crudo.porArchivo ?? {},
-        porPagina: crudo.porPagina ?? {},
         porSeccion: crudo.porSeccion ?? {},
         porProducto: crudo.porProducto ?? {},
       }
@@ -191,6 +188,28 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
     actualizar({ ...lista, [producto]: copia })
   }
 
+  /** Pone el mismo precio a todas las fotos del producto elegido. */
+  const aplicarPrecioATodas = () => {
+    const valor = precioMasivo.trim()
+    if (!valor || fotos.length === 0) return
+    const nombreProducto = PRODUCTOS_LABEL[producto] ?? producto
+    if (
+      !window.confirm(
+        `¿Poner "${valor}" a las ${fotos.length} fotos de ${nombreProducto}?`,
+      )
+    ) {
+      return
+    }
+    actualizar({
+      ...lista,
+      [producto]: fotos.map((foto) => ({ ...foto, precio: valor })),
+    })
+    setPrecioMasivo('')
+    setMensaje(
+      'Precio aplicado a todas las fotos de este producto ✅ Recuerda apretar «Guardar cambios».',
+    )
+  }
+
   /** Mueve una foto una posición arriba o abajo. */
   const mover = (indice: number, delta: number) => {
     const destino = indice + delta
@@ -217,17 +236,15 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
     setError('')
     setMensaje('')
     try {
-      // El precio propio solo se guarda cuando es distinto al general
-      // (así los precios por página/sección siguen mandando en el resto).
-      const contenido: Record<string, Array<{ seccion: string; foto: string; precio?: string }>> = {}
+      // Cada foto guarda SU precio (ya no hay precios por página ni generales
+      // que manden por encima de lo que se ve aquí).
+      const contenido: Record<string, Array<{ seccion: string; foto: string; precio: string }>> = {}
       for (const [nombre, entradas] of Object.entries(lista)) {
-        contenido[nombre] = entradas.map((entrada) => {
-          const general = precioPorDefecto(entrada.seccion, entrada.foto)
-          if (entrada.precio && entrada.precio !== general) {
-            return { seccion: entrada.seccion, foto: entrada.foto, precio: entrada.precio }
-          }
-          return { seccion: entrada.seccion, foto: entrada.foto }
-        })
+        contenido[nombre] = entradas.map((entrada) => ({
+          seccion: entrada.seccion,
+          foto: entrada.foto,
+          precio: entrada.precio,
+        }))
       }
       await guardarTexto(
         cfg,
@@ -354,15 +371,16 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
 
       <p className="admin-aviso">
         Aquí ves <strong>exactamente las fotos que salen en cada producto</strong>{' '}
-        (en el mismo orden). Puedes <strong>cambiar el precio de cada foto</strong> y{' '}
-        <strong>moverlas de lugar</strong> (arrastrando o con las flechas). Al
-        terminar, aprieta <strong>Guardar cambios</strong>: se publica solo.
+        (en el mismo orden). <strong>Cada foto tiene su propio precio</strong>: lo
+        escribes en el cuadro de abajo de la foto y ese es el que sale en la web.
+        También puedes <strong>cambiarlas de lugar</strong> (arrastrando o con las
+        flechas) y <strong>cambiar la foto</strong> sin perder su precio.
       </p>
       <p className="admin-ayuda">
-        El precio que ves es el que va a salir. Si lo dejas igual al general, esa
-        foto sigue el precio general de su página (pestaña «Precios»); si lo
-        cambías, ese precio queda solo para esa foto. Tips: los pasteles
-        (sweetcakes) se cotizan uno por uno; las artecookies dependen del tamaño
+        Ya no hay precios por página: el precio es de cada foto, así que puedes
+        ponerle uno distinto a cada diseño. Si dejas el cuadro vacío, esa foto sale
+        con «Precio por confirmar». Tips: los pasteles (sweetcakes) se cotizan uno
+        por uno; las artecookies dependen del tamaño
         (6&nbsp;cm $4.500 · 8&nbsp;cm $5.200 · 10&nbsp;cm $6.000).
       </p>
 
@@ -381,9 +399,26 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
         </select>
       </label>
 
+      <div className="admin-fila">
+        <input
+          className="admin-entrada"
+          value={precioMasivo}
+          placeholder="Precio para todas las fotos (ej: $5.000)"
+          onChange={(e) => setPrecioMasivo(e.target.value)}
+        />
+        <button
+          type="button"
+          className="admin-boton"
+          onClick={aplicarPrecioATodas}
+          disabled={!precioMasivo.trim() || fotos.length === 0}
+          title="Pone este precio a todas las fotos del producto elegido"
+        >
+          Aplicar a todas las fotos
+        </button>
+      </div>
+
       <div className="admin-rejilla-fotos">
         {fotos.map((entrada, indice) => {
-          const { pagina, orden } = desglosarNombre(entrada.foto)
           return (
             <div
               className={`admin-foto${arrastrando === indice ? ' arrastrando' : ''}`}
@@ -404,8 +439,7 @@ export function PanelFotos({ cfg }: { cfg: ConfigGitHub }) {
                 {entrada.foto}
               </p>
               <p className="admin-foto-pagina">
-                {SECCIONES_LABEL[entrada.seccion] ?? entrada.seccion} · pág.{' '}
-                {pagina} · #{orden}
+                {SECCIONES_LABEL[entrada.seccion] ?? entrada.seccion}
               </p>
               <div className="admin-foto-precio">
                 <input
